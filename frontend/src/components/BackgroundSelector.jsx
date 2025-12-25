@@ -5,7 +5,7 @@ import {
   GRADIENT_BACKGROUNDS,
   IMAGE_BACKGROUNDS,
   SOLID_BACKGROUNDS,
-} from "../services/board/board-backgrounds";
+} from "../services/board-backgrounds";
 
 export function BackgroundSelector({ currentBackground }) {
   const boardId = useSelector(state => state.boards.board._id);

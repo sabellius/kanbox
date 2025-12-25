@@ -1,6 +1,6 @@
 import { getDefaultFilter } from "../../services/filter-service";
 import { createAsyncActionTypes, createAsyncHandlers } from "../utils";
-import { sortByPosition } from "../../services/board/fractional-index-service";
+import { sortByPosition } from "../../services/fractional-index-service";
 
 export const SET_BOARDS = "SET_BOARDS";
 export const SET_BOARD = createAsyncActionTypes("SET_BOARD");

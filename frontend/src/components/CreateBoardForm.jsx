@@ -6,7 +6,7 @@ import {
   GRADIENT_BACKGROUNDS,
   IMAGE_BACKGROUNDS,
   SOLID_BACKGROUNDS,
-} from "../services/board/board-backgrounds";
+} from "../services/board-backgrounds";
 import { BackgroundGrid } from "./ui/BackgroundGrid";
 
 export function CreateBoardForm({

@@ -4,7 +4,7 @@ import {
   addCardAttachment,
   updateCardCover,
 } from "../store/actions/board-actions";
-import { COVER_COLORS } from "../services/board/board-backgrounds";
+import { COVER_COLORS } from "../services/board-backgrounds";
 import { attachmentService } from "../services/attachment-service";
 
 export function CardCoverMenu({ card, anchorEl, isOpen, onClose }) {

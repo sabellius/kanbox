@@ -4,8 +4,8 @@ import {
   LOGOUT,
   VALIDATE_SESSION,
 } from "../reducers/auth-reducer";
-import { authService } from "../../services/auth";
-import { userService } from "../../services/user/user-service-remote";
+import { authService } from "../../services/auth-service";
+import { userService } from "../../services/user-service";
 
 import { store } from "../store";
 import { createAsyncAction } from "../utils";

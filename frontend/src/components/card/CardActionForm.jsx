@@ -10,7 +10,7 @@ import TextareaAutosize from "@mui/material/TextareaAutosize";
 import Typography from "@mui/material/Typography";
 import { useFormState } from "../../hooks/useFormState";
 import { CustomAutoComplete } from "../ui/CustomAutoComplete";
-import { boardService } from "../../services/board";
+import { boardService } from "../../services/board-service";
 
 const SELECT_IDS = {
   BOARD: "card-board-select",

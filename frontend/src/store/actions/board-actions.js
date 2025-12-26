@@ -37,7 +37,7 @@ import {
 } from "../reducers/board-reducer";
 
 import { store } from "../store";
-import { boardService } from "../../services/board";
+import { boardService } from "../../services/board-service";
 import { createAsyncAction } from "../utils";
 
 export async function loadBoards() {

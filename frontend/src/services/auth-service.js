@@ -1,4 +1,4 @@
-import { httpService } from "../http-service";
+import { httpService } from "./http-service";
 
 const CURRENT_USER_SESSION_KEY = "currentUser";
 

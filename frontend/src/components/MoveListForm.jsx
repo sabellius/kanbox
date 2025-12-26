@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { CustomAutoComplete } from "./ui/CustomAutoComplete";
 import { useEffect, useState } from "react";
-import { boardService } from "../services/board";
+import { boardService } from "../services/board-service";
 
 export function MoveListForm({
   currentBoard,

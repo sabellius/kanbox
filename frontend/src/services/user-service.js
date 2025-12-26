@@ -1,4 +1,4 @@
-import { httpService } from "../http-service";
+import { httpService } from "../services/http-service";
 
 const STORAGE_KEY_LOGGEDIN_USER = "loggedinUser";
 

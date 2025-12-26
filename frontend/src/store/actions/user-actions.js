@@ -8,7 +8,7 @@ import {
 } from "../reducers/user-reducer";
 
 import { store } from "../store";
-import { userService } from "../../services/user";
+import { userService } from "../../services/user-service";
 import { socketService } from "../../services/socket-service";
 
 export async function loadUsers() {

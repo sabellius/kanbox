@@ -1,5 +1,5 @@
 import io from "socket.io-client";
-import { userService } from "./user";
+import { userService } from "./user-service";
 const { VITE_LOCAL, DEV } = import.meta.env;
 
 export const SOCKET_EMIT_SEND_MSG = "chat-send-msg";

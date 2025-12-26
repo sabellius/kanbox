@@ -4,7 +4,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
-import { boardService } from "../services/board";
+import { boardService } from "../services/board-service";
 
 export function AddList({ onAddList }) {
   const [showAddList, setShowAddList] = useState(false);

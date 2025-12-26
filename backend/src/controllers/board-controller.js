@@ -71,7 +71,7 @@ export async function getFullBoardById(req, res) {
   );
   if (!fullBoard) throw createError(404, "Board not found");
 
-  res.json({ board: fullBoard });
+  res.json(fullBoard);
 }
 
 export async function updateBoard(req, res) {

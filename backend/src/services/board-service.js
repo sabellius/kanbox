@@ -1,4 +1,6 @@
 import { Board } from "../models/Board.js";
+import { List } from "../models/List.js";
+import { Card } from "../models/Card.js";
 import {
   validateFilterParams,
   buildCardFilterQuery,
@@ -25,51 +27,29 @@ export async function getFullBoardById(id, filterBy = {}) {
   const validatedFilters = validateFilterParams(filterBy);
   const hasFilters = Object.keys(validatedFilters).length > 0;
 
-  if (!hasFilters) {
-    const board = await Board.findById(id).populate({
-      path: "lists",
-      options: { sort: { position: 1 } },
-      populate: {
-        path: "cards",
-        options: { sort: { position: 1 } },
-      },
-    });
-    return board;
-  }
-
-  const ObjectId = (await import("mongoose")).default.Types.ObjectId;
-
-  const pipeline = [
-    { $match: { _id: new ObjectId(id) } },
-    {
-      $lookup: {
-        from: "lists",
-        localField: "_id",
-        foreignField: "boardId",
-        as: "lists",
-        pipeline: [
-          { $sort: { position: 1 } },
-          {
-            $lookup: {
-              from: "cards",
-              localField: "_id",
-              foreignField: "listId",
-              as: "cards",
-              pipeline: [
-                { $match: buildCardFilterQuery(validatedFilters) },
-                { $sort: { position: 1 } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ];
-
-  const [board] = await Board.aggregate(pipeline);
+  const board = await Board.findById(id);
   if (!board) return null;
 
-  return Board.hydrate(board);
+  const lists = await List.find({ boardId: id }).sort({ position: 1 });
+
+  const listIds = lists.map(list => list._id);
+  let cards;
+  if (!hasFilters) {
+    cards = await Card.find({ listId: { $in: listIds } }).sort({
+      position: 1,
+    });
+  } else {
+    cards = await Card.find({
+      listId: { $in: listIds },
+      ...buildCardFilterQuery(validatedFilters),
+    }).sort({ position: 1 });
+  }
+
+  return {
+    board,
+    lists,
+    cards,
+  };
 }
 
 export async function updateBoard(id, data) {

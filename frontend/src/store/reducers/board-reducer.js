@@ -200,36 +200,18 @@ const handlers = {
   [ADD_CARD.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [ADD_CARD.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id !== action.payload.listId
-          ? list
-          : {
-              ...list,
-              cards: sortByPosition([...list.cards, action.payload]),
-            }
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(EDIT_CARD, EDIT_CARD.KEY),
   [EDIT_CARD.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [EDIT_CARD.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, ...action.payload }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
 
@@ -237,20 +219,9 @@ const handlers = {
   [UPDATE_CARD_COVER.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [UPDATE_CARD_COVER.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, cover: action.payload.cover }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
 
@@ -258,20 +229,9 @@ const handlers = {
   [ADD_CARD_ATTACHMENT.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [ADD_CARD_ATTACHMENT.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, attachments: action.payload.attachments }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
 
@@ -279,176 +239,83 @@ const handlers = {
   [REMOVE_CARD_ATTACHMENT.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [REMOVE_CARD_ATTACHMENT.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, attachments: action.payload.attachments }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
 
   ...createAsyncHandlers(DELETE_CARD, DELETE_CARD.KEY),
-  [DELETE_CARD.SUCCESS]: (state, action) => ({
-    ...state,
-    loading: { ...state.loading, [DELETE_CARD.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list => {
-        return {
-          ...list,
-          cards: list.cards.filter(card => card._id !== action.payload.cardId),
-        };
-      }),
-    },
-  }),
+  [DELETE_CARD.SUCCESS]: (state, action) => {
+    const { [action.payload.cardId]: _removed, ...remainingCards } =
+      state.cards;
+    return {
+      ...state,
+      loading: { ...state.loading, [DELETE_CARD.KEY]: false },
+      cards: remainingCards,
+    };
+  },
   ...createAsyncHandlers(COPY_CARD, COPY_CARD.KEY),
   [COPY_CARD.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [COPY_CARD.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: sortByPosition([...list.cards, action.payload]),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(MOVE_CARD, MOVE_CARD.KEY),
   [MOVE_CARD.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [MOVE_CARD.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list => {
-        const filteredCards = list.cards.filter(
-          card => card._id !== action.payload._id
-        );
-
-        if (list._id === action.payload.listId) {
-          return {
-            ...list,
-            cards: sortByPosition([...filteredCards, action.payload]),
-          };
-        }
-
-        return {
-          ...list,
-          cards: filteredCards,
-        };
-      }),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(ADD_ASSIGNEE, ADD_ASSIGNEE.KEY),
   [ADD_ASSIGNEE.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [ADD_ASSIGNEE.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, assignees: action.payload.assignees }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(REMOVE_ASSIGNEE, REMOVE_ASSIGNEE.KEY),
   [REMOVE_ASSIGNEE.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [REMOVE_ASSIGNEE.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, assignees: action.payload.assignees }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(ADD_COMMENT, ADD_COMMENT.KEY),
   [ADD_COMMENT.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [ADD_COMMENT.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, comments: action.payload.comments }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(UPDATE_COMMENT, UPDATE_COMMENT.KEY),
   [UPDATE_COMMENT.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [UPDATE_COMMENT.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, comments: action.payload.comments }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(DELETE_COMMENT, DELETE_COMMENT.KEY),
   [DELETE_COMMENT.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [DELETE_COMMENT.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? { ...card, comments: action.payload.comments }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(CREATE_LABEL, CREATE_LABEL.KEY),
@@ -491,23 +358,9 @@ const handlers = {
   [UPDATE_CARD_LABELS.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [UPDATE_CARD_LABELS.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload.listId
-          ? {
-              ...list,
-              cards: list.cards.map(card =>
-                card._id === action.payload._id
-                  ? {
-                      ...card,
-                      labelIds: action.payload.labelIds,
-                    }
-                  : card
-              ),
-            }
-          : list
-      ),
+    cards: {
+      ...state.cards,
+      [action.payload._id]: action.payload,
     },
   }),
   [SET_LOADING]: (state, action) => ({

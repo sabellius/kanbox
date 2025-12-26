@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useSelector, shallowEqual } from "react-redux";
 import IconButton from "@mui/material/IconButton";
 import AddRounded from "@mui/icons-material/AddRounded";
 import MoreHoriz from "@mui/icons-material/MoreHoriz";
@@ -11,6 +12,7 @@ import { SCROLL_DIRECTION, useScrollTo } from "../hooks/useScrollTo";
 import { setActiveListIndex } from "../store/actions/ui-actions";
 import { updateList } from "../store/actions/board-actions";
 import { AddCardForm } from "./AddCardForm";
+import { selectCardsByListId } from "../store/selectors/board-selectors";
 
 export function List({
   list,
@@ -23,6 +25,10 @@ export function List({
   listIndex,
   onMoveAllCards,
 }) {
+  const cards = useSelector(
+    state => selectCardsByListId(state, list._id),
+    shallowEqual
+  );
   const [anchorEl, setAnchorEl] = useState(null);
   const [addCardToEnd, setAddCardToEnd] = useState(true);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -163,7 +169,7 @@ export function List({
                     }`}
                     ref={listContentRef}
                   >
-                    {list.cards.map((card, index) => (
+                    {cards.map((card, index) => (
                       <Card
                         key={card._id}
                         card={card}

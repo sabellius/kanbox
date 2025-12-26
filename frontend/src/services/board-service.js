@@ -72,7 +72,7 @@ async function getFullById(boardId, filterBy = {}) {
     : `boards/${boardId}/full`;
 
   const data = await httpService.get(url);
-  return data.board;
+  return data;
 }
 
 // async function remove(boardId) {

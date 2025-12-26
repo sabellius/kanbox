@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { useSearchParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, shallowEqual } from "react-redux";
 import LockOutlineRounded from "@mui/icons-material/LockOutlineRounded";
 import MoreHoriz from "@mui/icons-material/MoreHoriz";
 import StarBorderRounded from "@mui/icons-material/StarBorderRounded";
@@ -30,26 +30,24 @@ import {
   moveCard,
   moveList,
 } from "../store/actions/board-actions";
+import {
+  selectCurrentBoard,
+  selectBoardLists,
+} from "../store/selectors/board-selectors";
 
 export function BoardDetails() {
   const [activeAddCardListId, setActiveAddCardListId] = useState(null);
   const [boardMenuAnchorEl, setBoardMenuAnchorEl] = useState(null);
   const params = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const board = useSelector(state => state.boards.board);
+  const board = useSelector(selectCurrentBoard, shallowEqual);
+  const lists = useSelector(selectBoardLists, shallowEqual);
   const [labelsIsOpen, setLabelsIsOpen] = useState(false);
   const boardCanvasRef = useRef(null);
   const scrollBoardToEnd = useScrollTo(boardCanvasRef);
   useDragToScroll(boardCanvasRef, { sensitivity: 1, enabled: !!board });
   const { filters, updateFilters } = useCardFilters();
-  const [lists, setLists] = useState(board?.lists || []);
   const isFromUrlUpdate = useRef(false);
-
-  useEffect(() => {
-    if (board) {
-      setLists(board.lists);
-    }
-  }, [board]);
 
   useEffect(() => {
     if (params.boardId) {

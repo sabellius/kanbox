@@ -48,6 +48,8 @@ export const CLEAR_ALL_FILTERS = "boards/CLEAR_ALL_FILTERS";
 const initialState = {
   boards: [],
   board: null,
+  lists: {},
+  cards: {},
   loading: {},
   errors: {},
   filterBy: getDefaultFilter(),
@@ -106,10 +108,21 @@ const handlers = {
     boards: action.payload,
   }),
   ...createAsyncHandlers(SET_BOARD, SET_BOARD.KEY),
-  [SET_BOARD.SUCCESS]: (state, action) => ({
-    ...state,
-    board: action.payload,
-  }),
+  [SET_BOARD.SUCCESS]: (state, action) => {
+    console.log("🚀 ~ action:", action);
+    return {
+      ...state,
+      board: action.payload.board,
+      lists: action.payload.lists.reduce((acc, list) => {
+        acc[list._id] = list;
+        return acc;
+      }, {}),
+      cards: action.payload.cards.reduce((acc, card) => {
+        acc[card._id] = card;
+        return acc;
+      }, {}),
+    };
+  },
   [DELETE_BOARD]: (state, action) => {
     const boards = state.boards.filter(board => board._id !== action.payload);
     return { ...state, boards };

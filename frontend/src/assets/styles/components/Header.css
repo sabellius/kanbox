@@ -2,7 +2,7 @@
   display: flex;
   width: 100%;
   background-color: var(--ds-surface);
-  padding: 0.8rem 1rem;
+  padding: var(--ds-space-100);
   border-block-end: 1px solid var(--t-dark-gray);
 
   & nav {
@@ -58,7 +58,7 @@
   }
 
   @media (max-width: 768px) {
-    padding: 0.6rem 0.8rem;
+    padding: var(--ds-space-100);
 
     & nav {
       gap: 0.5em;

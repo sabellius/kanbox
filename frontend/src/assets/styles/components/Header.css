@@ -3,7 +3,7 @@
   width: 100%;
   background-color: var(--ds-surface);
   padding: var(--ds-space-100);
-  border-block-end: 1px solid var(--t-dark-gray);
+  border-bottom: 1px solid hsla(211, 18%, 68%, 0.16);
 
   & nav {
     display: grid;

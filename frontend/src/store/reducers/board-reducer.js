@@ -60,49 +60,48 @@ const handlers = {
   [ADD_LIST.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [ADD_LIST.KEY]: false },
+    lists: {
+      ...state.lists,
+      [action.payload._id]: action.payload,
+    },
     board: {
       ...state.board,
-      lists: sortByPosition([...state.board.lists, action.payload]),
+      listIds: [...state.board.listIds, action.payload._id],
     },
   }),
   ...createAsyncHandlers(MOVE_ALL_CARDS, MOVE_ALL_CARDS.KEY),
-  [MOVE_ALL_CARDS.SUCCESS]: (state, action) => ({
-    ...state,
-    loading: { ...state.loading, [MOVE_ALL_CARDS.KEY]: false },
-    board: {
-      ...state.board,
-      lists: action.payload,
-    },
-  }),
+  [MOVE_ALL_CARDS.SUCCESS]: (state, action) => {
+    const updatedCards = action.payload.cards || [];
+    const cardsUpdates = updatedCards.reduce((acc, card) => {
+      acc[card._id] = card;
+      return acc;
+    }, {});
+
+    return {
+      ...state,
+      loading: { ...state.loading, [MOVE_ALL_CARDS.KEY]: false },
+      cards: {
+        ...state.cards,
+        ...cardsUpdates,
+      },
+    };
+  },
   ...createAsyncHandlers(ARCHIVE_LIST, ARCHIVE_LIST.KEY),
-  [ARCHIVE_LIST.SUCCESS]: (state, action) => ({
-    ...state,
-    loading: { ...state.loading, [ARCHIVE_LIST.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.filter(list => list._id !== action.payload._id),
-    },
-  }),
+  [ARCHIVE_LIST.SUCCESS]: (state, action) => {
+    const { [action.payload._id]: _removed, ...remainingLists } = state.lists;
+    return {
+      ...state,
+      loading: { ...state.loading, [ARCHIVE_LIST.KEY]: false },
+      lists: remainingLists,
+      board: {
+        ...state.board,
+        listIds: state.board.listIds.filter(
+          listId => listId !== action.payload._id
+        ),
+      },
+    };
+  },
   ...createAsyncHandlers(UNARCHIVE_LIST, UNARCHIVE_LIST.KEY),
-  ...createAsyncHandlers(
-    ARCHIVE_ALL_CARDS_IN_LIST,
-    ARCHIVE_ALL_CARDS_IN_LIST.KEY
-  ),
-  [ARCHIVE_ALL_CARDS_IN_LIST.SUCCESS]: (state, action) => ({
-    ...state,
-    loading: { ...state.loading, [ARCHIVE_ALL_CARDS_IN_LIST.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload._id
-          ? {
-              ...list,
-              cards: action.payload.cards.filter(card => !card.archivedAt),
-            }
-          : list
-      ),
-    },
-  }),
   [SET_BOARDS]: (state, action) => ({
     ...state,
     boards: action.payload,
@@ -139,61 +138,94 @@ const handlers = {
   }),
   ...createAsyncHandlers(MOVE_LIST, MOVE_LIST.KEY),
   [MOVE_LIST.SUCCESS]: (state, action) => {
-    let newLists;
-    if (state.board._id !== action.payload.boardId) {
-      newLists = state.board.lists.filter(
-        list => list._id !== action.payload._id
-      );
-    } else {
-      newLists = state.board.lists.map(list =>
-        list._id === action.payload._id ? { ...list, ...action.payload } : list
-      );
-      newLists = sortByPosition(newLists);
+    const movedList = action.payload;
+
+    if (state.board._id !== movedList.boardId) {
+      // List moved to a different board - remove from current board's listIds
+      return {
+        ...state,
+        loading: { ...state.loading, [MOVE_LIST.KEY]: false },
+        lists: {
+          ...state.lists,
+          [movedList._id]: movedList,
+        },
+        board: {
+          ...state.board,
+          listIds: state.board.listIds.filter(
+            listId => listId !== movedList._id
+          ),
+        },
+      };
     }
+
+    // List moved within same board - update list and order listIds
     return {
       ...state,
+      loading: { ...state.loading, [MOVE_LIST.KEY]: false },
+      lists: {
+        ...state.lists,
+        [movedList._id]: movedList,
+      },
       board: {
         ...state.board,
-        lists: newLists,
+        listIds: sortByPosition(
+          state.board.listIds
+            .map(listId => state.lists[listId])
+            .concat(movedList)
+        ).map(list => list._id),
       },
     };
   },
   ...createAsyncHandlers(COPY_LIST, COPY_LIST.KEY),
   [COPY_LIST.SUCCESS]: (state, action) => {
-    let newLists;
-    if (state.board._id === action.payload.boardId) {
-      newLists = [...state.board.lists, action.payload];
-      newLists = sortByPosition(newLists);
+    if (state.board._id !== action.payload.boardId) {
+      // Copied to different board - return state unchanged
       return {
         ...state,
         loading: { ...state.loading, [COPY_LIST.KEY]: false },
-        board: {
-          ...state.board,
-          lists: newLists,
-        },
       };
-    } else {
-      return state;
     }
+
+    // Copied to same board - add to lists and listIds
+    return {
+      ...state,
+      loading: { ...state.loading, [COPY_LIST.KEY]: false },
+      lists: {
+        ...state.lists,
+        [action.payload._id]: action.payload,
+      },
+      board: {
+        ...state.board,
+        listIds: sortByPosition(
+          state.board.listIds
+            .map(listId => state.lists[listId])
+            .concat(action.payload)
+        ).map(list => list._id),
+      },
+    };
   },
   ...createAsyncHandlers(DELETE_LIST, DELETE_LIST.KEY),
-  [DELETE_LIST.SUCCESS]: (state, action) => ({
-    ...state,
-    loading: { ...state.loading, [DELETE_LIST.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.filter(list => list._id !== action.payload),
-    },
-  }),
+  [DELETE_LIST.SUCCESS]: (state, action) => {
+    const { [action.payload]: _removed, ...remainingLists } = state.lists;
+    return {
+      ...state,
+      loading: { ...state.loading, [DELETE_LIST.KEY]: false },
+      lists: remainingLists,
+      board: {
+        ...state.board,
+        listIds: state.board.listIds.filter(
+          listId => listId !== action.payload
+        ),
+      },
+    };
+  },
   ...createAsyncHandlers(UPDATE_LIST, UPDATE_LIST.KEY),
   [UPDATE_LIST.SUCCESS]: (state, action) => ({
     ...state,
     loading: { ...state.loading, [UPDATE_LIST.KEY]: false },
-    board: {
-      ...state.board,
-      lists: state.board.lists.map(list =>
-        list._id === action.payload._id ? { ...list, ...action.payload } : list
-      ),
+    lists: {
+      ...state.lists,
+      [action.payload._id]: action.payload,
     },
   }),
   ...createAsyncHandlers(ADD_CARD, ADD_CARD.KEY),
@@ -345,14 +377,14 @@ const handlers = {
     board: {
       ...state.board,
       labels: state.board.labels.filter(l => l._id !== action.payload),
-      lists: state.board.lists.map(list => ({
-        ...list,
-        cards: list.cards.map(card => ({
-          ...card,
-          labelIds: card.labelIds.filter(id => id !== action.payload),
-        })),
-      })),
     },
+    cards: Object.entries(state.cards).reduce((acc, [cardId, card]) => {
+      acc[cardId] = {
+        ...card,
+        labelIds: card.labelIds.filter(id => id !== action.payload),
+      };
+      return acc;
+    }, {}),
   }),
   ...createAsyncHandlers(UPDATE_CARD_LABELS, UPDATE_CARD_LABELS.KEY),
   [UPDATE_CARD_LABELS.SUCCESS]: (state, action) => ({

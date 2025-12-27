@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useSelector, shallowEqual } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { CardModal } from "../components/CardModal";
 import { useState, useEffect } from "react";
@@ -7,17 +7,27 @@ import {
   editCard,
   loadBoard,
 } from "../store/actions/board-actions";
+import {
+  selectCardById,
+  selectListById,
+} from "../store/selectors/board-selectors";
 
 export function CardDetails() {
   const { boardId, listId, cardId } = useParams();
   const [modalOpen, setModalOpen] = useState(true);
   const navigate = useNavigate();
-  const board = useSelector(s => s.boards.board);
+  const board = useSelector(s => s.boards.board, shallowEqual);
+  const card = useSelector(
+    state => selectCardById(state, cardId),
+    shallowEqual
+  );
+  const list = useSelector(
+    state => selectListById(state, listId),
+    shallowEqual
+  );
   const backgroundClass = board?.appearance
     ? `bg-${board?.appearance?.background}`
     : "bg-blue";
-  const list = board?.lists?.find(l => l._id === listId);
-  const card = list?.cards?.find(c => c._id === cardId);
 
   useEffect(() => {
     if (!board || board._id !== boardId) {

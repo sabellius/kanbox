@@ -16,12 +16,12 @@
   align-items: center;
   background: rgba(0, 0, 0, 0.265);
   backdrop-filter: blur(8px);
-  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  padding: var(--ds-space-150);
 }
 
 .board-title {
   margin: 0;
-  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  padding: var(--ds-space-0);
   font-size: 1.2rem;
   font-weight: bold;
   color: var(--gray1);

@@ -42,6 +42,7 @@ export function BoardDetails() {
   const [searchParams, setSearchParams] = useSearchParams();
   const board = useSelector(selectCurrentBoard, shallowEqual);
   const lists = useSelector(selectBoardLists, shallowEqual);
+  const cards = useSelector(state => state.boards.cards, shallowEqual);
   const [labelsIsOpen, setLabelsIsOpen] = useState(false);
   const boardCanvasRef = useRef(null);
   const scrollBoardToEnd = useScrollTo(boardCanvasRef);
@@ -135,13 +136,11 @@ export function BoardDetails() {
 
     try {
       if (type === "LIST") {
-        const { newLists, listToMove, before, after } = reorderLists(
+        const { listToMove } = reorderLists(
           lists,
           source.index,
           destination.index
         );
-
-        setLists(newLists);
 
         if (listToMove) {
           moveList(listToMove._id, board._id, destination.index);
@@ -149,16 +148,14 @@ export function BoardDetails() {
         return;
       }
 
-      const { newLists, cardToMove } = reorderCards(
-        lists,
+      const { cardToMove } = reorderCards(
+        cards,
         source.droppableId,
         destination.droppableId,
         source.index,
         destination.index,
         draggableId
       );
-
-      setLists(newLists);
 
       if (cardToMove) {
         const moveData = {

@@ -66,7 +66,9 @@ const handlers = {
     },
     board: {
       ...state.board,
-      listIds: [...state.board.listIds, action.payload._id],
+      listIds: state.board?.listIds
+        ? [...state.board.listIds, action.payload._id]
+        : [action.payload._id],
     },
   }),
   ...createAsyncHandlers(MOVE_ALL_CARDS, MOVE_ALL_CARDS.KEY),
@@ -95,9 +97,9 @@ const handlers = {
       lists: remainingLists,
       board: {
         ...state.board,
-        listIds: state.board.listIds.filter(
-          listId => listId !== action.payload._id
-        ),
+        listIds: state.board?.listIds
+          ? state.board.listIds.filter(listId => listId !== action.payload._id)
+          : [],
       },
     };
   },
@@ -140,7 +142,7 @@ const handlers = {
   [MOVE_LIST.SUCCESS]: (state, action) => {
     const movedList = action.payload;
 
-    if (state.board._id !== movedList.boardId) {
+    if (state.board?._id !== movedList.boardId) {
       // List moved to a different board - remove from current board's listIds
       return {
         ...state,
@@ -151,9 +153,9 @@ const handlers = {
         },
         board: {
           ...state.board,
-          listIds: state.board.listIds.filter(
-            listId => listId !== movedList._id
-          ),
+          listIds: state.board?.listIds
+            ? state.board.listIds.filter(listId => listId !== movedList._id)
+            : [],
         },
       };
     }
@@ -168,17 +170,19 @@ const handlers = {
       },
       board: {
         ...state.board,
-        listIds: sortByPosition(
-          state.board.listIds
-            .map(listId => state.lists[listId])
-            .concat(movedList)
-        ).map(list => list._id),
+        listIds: state.board?.listIds
+          ? sortByPosition(
+              state.board.listIds
+                .map(listId => state.lists[listId])
+                .concat(movedList)
+            ).map(list => list._id)
+          : [movedList._id],
       },
     };
   },
   ...createAsyncHandlers(COPY_LIST, COPY_LIST.KEY),
   [COPY_LIST.SUCCESS]: (state, action) => {
-    if (state.board._id !== action.payload.boardId) {
+    if (state.board?._id !== action.payload.boardId) {
       // Copied to different board - return state unchanged
       return {
         ...state,
@@ -196,11 +200,13 @@ const handlers = {
       },
       board: {
         ...state.board,
-        listIds: sortByPosition(
-          state.board.listIds
-            .map(listId => state.lists[listId])
-            .concat(action.payload)
-        ).map(list => list._id),
+        listIds: state.board?.listIds
+          ? sortByPosition(
+              state.board.listIds
+                .map(listId => state.lists[listId])
+                .concat(action.payload)
+            ).map(list => list._id)
+          : [action.payload._id],
       },
     };
   },
@@ -213,9 +219,9 @@ const handlers = {
       lists: remainingLists,
       board: {
         ...state.board,
-        listIds: state.board.listIds.filter(
-          listId => listId !== action.payload
-        ),
+        listIds: state.board?.listIds
+          ? state.board.listIds.filter(listId => listId !== action.payload)
+          : [],
       },
     };
   },
@@ -356,7 +362,9 @@ const handlers = {
     loading: { ...state.loading, [CREATE_LABEL.KEY]: false },
     board: {
       ...state.board,
-      labels: [...state.board.labels, action.payload],
+      labels: state.board?.labels
+        ? [...state.board.labels, action.payload]
+        : [action.payload],
     },
   }),
   ...createAsyncHandlers(EDIT_LABEL, EDIT_LABEL.KEY),
@@ -365,9 +373,11 @@ const handlers = {
     loading: { ...state.loading, [EDIT_LABEL.KEY]: false },
     board: {
       ...state.board,
-      labels: state.board.labels.map(l =>
-        l._id === action.payload._id ? action.payload : l
-      ),
+      labels: state.board?.labels
+        ? state.board.labels.map(l =>
+            l._id === action.payload._id ? action.payload : l
+          )
+        : [],
     },
   }),
   ...createAsyncHandlers(DELETE_LABEL, DELETE_LABEL.KEY),
@@ -376,7 +386,9 @@ const handlers = {
     loading: { ...state.loading, [DELETE_LABEL.KEY]: false },
     board: {
       ...state.board,
-      labels: state.board.labels.filter(l => l._id !== action.payload),
+      labels: state.board?.labels
+        ? state.board.labels.filter(l => l._id !== action.payload)
+        : [],
     },
     cards: Object.entries(state.cards).reduce((acc, [cardId, card]) => {
       acc[cardId] = {

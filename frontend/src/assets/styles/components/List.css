@@ -8,7 +8,7 @@
   min-height: 0;
   overflow: hidden;
   border: 1px solid var(--black);
-  border-radius: 10px;
+  border-radius: var(--ds-radius-xlarge);
   background-color: #040612;
   color: var(--gray1);
   margin: 0.2rem 0.35rem 0.2rem 0.35rem;

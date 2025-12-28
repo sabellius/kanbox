@@ -19,6 +19,10 @@ export async function getAllBoards() {
   return await Board.find();
 }
 
+export async function getBoardsByWorkspace(workspaceId) {
+  return await Board.find({ workspaceId });
+}
+
 export async function getBoardById(id) {
   return await Board.findById(id);
 }

@@ -12,6 +12,10 @@ export async function createBoard(data) {
     data.appearance = { background };
   }
 
+  if (!data.workspaceId) {
+    throw new Error("workspaceId is required");
+  }
+
   return await Board.create(data);
 }
 

@@ -78,3 +78,30 @@ export function canCreateCard() {
     return await permissions.board.canModifyBoardContent(userId, boardId);
   });
 }
+
+export function canViewWorkspace() {
+  return authorize(async (req, userId) => {
+    return await permissions.workspace.canViewWorkspace(userId, req.params.id);
+  });
+}
+
+export function canManageWorkspace() {
+  return authorize(async (req, userId) => {
+    return await permissions.workspace.canManageWorkspace(
+      userId,
+      req.params.id
+    );
+  });
+}
+
+export function isWorkspaceAdmin() {
+  return authorize(async (req, userId) => {
+    return await permissions.workspace.isWorkspaceAdmin(userId, req.params.id);
+  });
+}
+
+export function canCreateWorkspace() {
+  return authorize(async (req, userId) => {
+    return true;
+  });
+}

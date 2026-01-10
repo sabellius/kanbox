@@ -56,6 +56,21 @@ export function canCreateBoard() {
   });
 }
 
+export function canCreateWorkspace() {
+  return authorize(async (req, userId) => {
+    return true;
+  });
+}
+
+export function canManageWorkspace() {
+  return authorize(async (req, userId) => {
+    return await permissions.workspace.canManageWorkspace(
+      userId,
+      req.params.id
+    );
+  });
+}
+
 export function canCreateList() {
   return authorize(async (req, userId) => {
     const boardId =

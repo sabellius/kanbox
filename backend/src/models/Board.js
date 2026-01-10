@@ -25,6 +25,11 @@ const boardSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    workspaceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Workspace",
+      required: true,
+    },
     appearance: {
       background: {
         type: String,

@@ -44,3 +44,6 @@ vite.config.ts.timestamp-*
 memory-bank/
 
 tmp/
+
+# ai
+.kilocode/

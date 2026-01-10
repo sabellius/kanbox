@@ -3,7 +3,7 @@ import createError from "http-errors";
 
 export async function createBoard(req, res) {
   try {
-    const { title, description, appearance } = req.body;
+    const { title, description, appearance, workspaceId } = req.body;
     const owner = {
       userId: req.currentUser._id,
       username: req.currentUser.username,
@@ -14,6 +14,7 @@ export async function createBoard(req, res) {
       description,
       owner,
       appearance,
+      workspaceId,
     });
     res.status(201).json({ board });
   } catch (err) {

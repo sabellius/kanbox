@@ -1,19 +1,6 @@
 import mongoose from "mongoose";
 
-const labelSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  color: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-});
-
-const boardSchema = new mongoose.Schema(
+const workspaceSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -25,19 +12,6 @@ const boardSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
-    workspaceId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Workspace",
-      required: true,
-    },
-    appearance: {
-      background: {
-        type: String,
-        default: null,
-        trim: true,
-      },
-    },
-    labels: [labelSchema],
     owner: {
       userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -74,12 +48,4 @@ const boardSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-boardSchema.set("toJSON", { virtuals: true });
-
-boardSchema.virtual("lists", {
-  ref: "List",
-  localField: "_id",
-  foreignField: "boardId",
-});
-
-export const Board = mongoose.model("Board", boardSchema);
+export const Workspace = mongoose.model("Workspace", workspaceSchema);

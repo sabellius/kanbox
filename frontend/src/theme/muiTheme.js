@@ -4,12 +4,11 @@ import { setGlobalTheme, token } from "@atlaskit/tokens";
 setGlobalTheme({
   colorMode: "dark",
   shape: "shape",
-  typography: "typography",
   elevation: "elevation",
 });
 
 const FONT_FALLBACK =
-  'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, "Helvetica Neue", sans-serif';
+  '"Inter Variable", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, "Helvetica Neue", sans-serif';
 
 const muiTheme = createTheme({
   /**
@@ -72,7 +71,7 @@ const muiTheme = createTheme({
    * body2 → font.body.small   (11px/400)
    */
   typography: {
-    fontFamily: token("font.family.body", FONT_FALLBACK),
+    fontFamily: FONT_FALLBACK,
     fontSize: 14,
     fontWeightLight: 300,
     fontWeightRegular: token("font.weight.regular", "400"),
@@ -80,37 +79,37 @@ const muiTheme = createTheme({
     fontWeightBold: token("font.weight.bold", "700"),
 
     h1: {
-      fontFamily: token("font.family.heading", FONT_FALLBACK),
+      fontFamily: FONT_FALLBACK,
       fontSize: "2.1875rem",
       lineHeight: "2.5rem",
       fontWeight: token("font.weight.medium", "500"),
     },
     h2: {
-      fontFamily: token("font.family.heading", FONT_FALLBACK),
+      fontFamily: FONT_FALLBACK,
       fontSize: "1.8125rem",
       lineHeight: "2rem",
       fontWeight: token("font.weight.semibold", "600"),
     },
     h3: {
-      fontFamily: token("font.family.heading", FONT_FALLBACK),
+      fontFamily: FONT_FALLBACK,
       fontSize: "1.5rem",
       lineHeight: "1.75rem",
       fontWeight: token("font.weight.medium", "500"),
     },
     h4: {
-      fontFamily: token("font.family.heading", FONT_FALLBACK),
+      fontFamily: FONT_FALLBACK,
       fontSize: "1.25rem",
       lineHeight: "1.5rem",
       fontWeight: token("font.weight.medium", "500"),
     },
     h5: {
-      fontFamily: token("font.family.heading", FONT_FALLBACK),
+      fontFamily: FONT_FALLBACK,
       fontSize: "1rem",
       lineHeight: "1.25rem",
       fontWeight: token("font.weight.semibold", "600"),
     },
     h6: {
-      fontFamily: token("font.family.heading", FONT_FALLBACK),
+      fontFamily: FONT_FALLBACK,
       fontSize: "0.875rem",
       lineHeight: "1rem",
       fontWeight: token("font.weight.semibold", "600"),

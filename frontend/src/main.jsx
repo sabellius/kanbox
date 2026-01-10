@@ -6,6 +6,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import { App } from "./App";
 import "./assets/styles/main.css";
+import "@fontsource-variable/inter";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { store } from "./store/store";
 import { muiTheme } from "./theme/muiTheme";

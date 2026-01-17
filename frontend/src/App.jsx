@@ -12,6 +12,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { ThemeComparison } from "./pages/ThemeComparison";
 import { UserDetails } from "./pages/UserDetails";
+import { WorkspaceIndex } from "./pages/WorkspaceIndex";
+import { WorkspaceDetails } from "./pages/WorkspaceDetails";
 
 export function App() {
   const location = useLocation();
@@ -29,6 +31,11 @@ export function App() {
             <Route path="vision" element={<AboutVision />} />
           </Route>
           <Route element={<ProtectedRoute />}>
+            <Route path="workspaces" element={<WorkspaceIndex />} />
+            <Route
+              path="workspace/:workspaceId"
+              element={<WorkspaceDetails />}
+            />
             <Route path="board" element={<BoardIndex />} />
             <Route path="board/:boardId" element={<BoardDetails />} />
             <Route path="user/:userId" element={<UserDetails />} />

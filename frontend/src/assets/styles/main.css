@@ -37,6 +37,8 @@
 @import "components/CopyListForm";
 @import "components/MoveListForm";
 @import "components/CreateBoardForm";
+@import "components/CreateWorkspaceForm";
+@import "components/WorkspacePreview.css";
 
 @import "components/Card";
 @import "components/CardFormMenu";
@@ -50,3 +52,5 @@
 
 @import "pages/BoardIndex";
 @import "pages/BoardDetails";
+@import "pages/WorkspaceIndex";
+@import "pages/WorkspaceDetails";

@@ -47,3 +47,6 @@ tmp/
 
 # ai
 .kilocode/
+
+# vscode
+.vscode/

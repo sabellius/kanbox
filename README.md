@@ -209,12 +209,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 
 ## 📬 Contact
 
-**[Your Name]**
+**[Saveliy Shiryaev]**
 
-- Portfolio: [your-portfolio.com](#)
-- LinkedIn: [linkedin.com/in/yourprofile](#)
-- Email: your.email@example.com
-- GitHub: [@yourusername](https://github.com/yourusername)
+- Portfolio: [https://saveliyshiryaev.dev/](https://saveliyshiryaev.dev/)
+- LinkedIn: [https://www.linkedin.com/in/saveliy-shiryaev/](https://www.linkedin.com/in/saveliy-shiryaev/)
+- Email: saveliy.dev@pm.me
+- GitHub: [@sabellius](https://github.com/sabellius)
 
 ---
 

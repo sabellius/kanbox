@@ -140,8 +140,8 @@ Integrated Atlassian Design System tokens with Material-UI to leverage an existi
 This project was developed collaboratively by 3 full-stack developers with no formal team lead, working together through pair programming and code reviews:
 
 - **Saveliy Shiryaev** - Backend-oriented (API, auth, permissions, migrations) + Frontend (Redux, Design System integration)
-- **Vlad G** - Frontend-oriented (React components, routing, drag-and-drop implementation)
-- **Lior R** - Frontend-oriented (UI/UX design, styling, form components, Cloudinary integration)
+- **Vlad G** - Frontend-oriented (Cloudinary integration, pop-over menues)
+- **Lior R** - Frontend-oriented (Labels, comments)
 
 📖 **Detailed contribution breakdown:** [Team Documentation →](docs/TEAM.md)
 

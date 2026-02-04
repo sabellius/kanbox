@@ -12,7 +12,7 @@ export async function getAllCards(_req, res) {
   res.json({ cards });
 }
 
-export async function getCardById(req, res, next) {
+export async function getCardById(req, res) {
   const card = await cardService.getCardById(req.params.id);
   if (!card) throwNotFound("Card");
 

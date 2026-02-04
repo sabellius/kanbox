@@ -1,6 +1,7 @@
 import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 import createError from "http-errors";
+import { throwNotFound } from "../utils/error-utils.js";
 
 export async function signup(req, res) {
   const { email, username, fullname, password } = req.body;
@@ -23,7 +24,7 @@ export async function signup(req, res) {
 export async function login(req, res) {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user) throw createError(404, "User not found");
+  if (!user) throwNotFound("User");
 
   const passwordMatch = await user.comparePassword(password);
   if (!passwordMatch) throw createError(401, "Invalid credentials");
@@ -46,7 +47,7 @@ export async function getCurrentUser(req, res) {
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const user = await User.findById(decoded.userId);
-  if (!user) throw createError(404, "User not found");
+  if (!user) throwNotFound("User");
 
   res.json({ user: user.getSafeUser() });
 }

@@ -1,7 +1,5 @@
-import createError from "http-errors";
 import * as cardService from "../services/card-service.js";
 import { Card } from "../models/Card.js";
-import { User } from "../models/User.js";
 import { throwNotFound } from "../utils/error-utils.js";
 
 export async function createCard(req, res) {

@@ -23,6 +23,11 @@ function errorHandler(err, _req, res, _next) {
     error = createError(401, "Token expired");
   }
 
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyPattern)[0];
+    error = createError(409, `${field} already exists`);
+  }
+
   // Some unexpected programming error
   if (!createError.isHttpError(error)) {
     console.error("Unexpected error:", error);

@@ -1,48 +1,34 @@
 import * as boardService from "../services/board-service.js";
 import createError from "http-errors";
+import { throwNotFound } from "../utils/error-utils.js";
 
 export async function createBoard(req, res) {
-  try {
-    const { title, description, appearance, workspaceId } = req.body;
-    const owner = {
-      userId: req.currentUser._id,
-      username: req.currentUser.username,
-      fullname: req.currentUser.fullname,
-    };
-    const board = await boardService.createBoard({
-      title,
-      description,
-      owner,
-      appearance,
-      workspaceId,
-    });
-    res.status(201).json({ board });
-  } catch (err) {
-    if (err.name === "ValidationError") {
-      return res.status(400).json({ error: err.message });
-    }
-    res.status(500).json({ error: "Failed to create board" });
-  }
+  const { title, description, appearance, workspaceId } = req.body;
+  const owner = {
+    userId: req.currentUser._id,
+    username: req.currentUser.username,
+    fullname: req.currentUser.fullname,
+  };
+  const board = await boardService.createBoard({
+    title,
+    description,
+    owner,
+    appearance,
+    workspaceId,
+  });
+  res.status(201).json({ board });
 }
 
 export async function getAllBoards(_req, res) {
-  try {
-    const boards = await boardService.getAllBoards();
-    res.json({ boards });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch boards" });
-  }
+  const boards = await boardService.getAllBoards();
+  res.json({ boards });
 }
 
 export async function getBoardById(req, res) {
-  try {
-    const board = await boardService.getBoardById(req.params.id);
-    if (!board) return res.status(404).json({ error: "Board not found" });
+  const board = await boardService.getBoardById(req.params.id);
+  if (!board) throwNotFound("Board");
 
-    res.json({ board });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch board" });
-  }
+  res.json({ board });
 }
 
 export async function getFullBoardById(req, res) {
@@ -70,40 +56,35 @@ export async function getFullBoardById(req, res) {
     req.params.id,
     filterBy
   );
-  if (!fullBoard) throw createError(404, "Board not found");
+  if (!fullBoard) throwNotFound("Board");
 
   res.json(fullBoard);
 }
 
 export async function updateBoard(req, res) {
-  try {
-    const { title, description, owner, appearance } = req.body;
-    const board = await boardService.updateBoard(req.params.id, {
-      title,
-      description,
-      owner,
-      appearance,
-    });
-    if (!board) return res.status(404).json({ error: "Board not found" });
+  const { title, description, owner, appearance } = req.body;
+  const board = await boardService.updateBoard(req.params.id, {
+    title,
+    description,
+    owner,
+    appearance,
+  });
+  if (!board) throwNotFound("Board");
 
-    res.json({ board });
-  } catch (err) {
-    if (err.name === "ValidationError") {
-      return res.status(400).json({ error: err.message });
-    }
-    res.status(500).json({ error: "Failed to update board" });
-  }
+  res.json({ board });
 }
 
 export async function deleteBoard(req, res) {
   const board = await boardService.deleteBoard(req.params.id);
-  if (!board) throw createError(404, "Board not found");
+  if (!board) throwNotFound("Board");
 
   res.status(204).send();
 }
 
 export async function getBoardLabels(req, res) {
   const board = await boardService.getBoardLabels(req.params.id);
+  if (!board) throwNotFound("Board");
+
   res.json({ labels: board.labels });
 }
 
@@ -113,6 +94,8 @@ export async function addBoardLabel(req, res) {
     title,
     color,
   });
+  if (!label) throwNotFound("Board");
+
   res.status(201).json({ label });
 }
 
@@ -123,7 +106,8 @@ export async function updateBoardLabel(req, res) {
     req.params.labelId,
     { title, color }
   );
-  if (!updatedLabel) throw createError(404, "Label not found");
+  if (!updatedLabel) throwNotFound("Label");
+
   res.json({ label: updatedLabel });
 }
 
@@ -132,6 +116,7 @@ export async function deleteBoardLabel(req, res) {
     req.params.id,
     req.params.labelId
   );
-  if (!board) throw createError(404, "Label not found");
+  if (!board) throwNotFound("Label");
+
   res.status(204).send();
 }

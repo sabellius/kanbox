@@ -2,6 +2,7 @@ import createError from "http-errors";
 import * as cardService from "../services/card-service.js";
 import { Card } from "../models/Card.js";
 import { User } from "../models/User.js";
+import { throwNotFound } from "../utils/error-utils.js";
 
 export async function createCard(req, res) {
   const card = await cardService.createCard(req.body);
@@ -15,14 +16,14 @@ export async function getAllCards(_req, res) {
 
 export async function getCardById(req, res, next) {
   const card = await cardService.getCardById(req.params.id);
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.json({ card });
 }
 
 export async function updateCard(req, res) {
   const card = await cardService.updateCard(req.params.id, req.body);
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.json({ card });
 }
@@ -30,7 +31,7 @@ export async function updateCard(req, res) {
 export async function updateCover(req, res) {
   const { id } = req.params;
   const card = await cardService.updateCover(id, req.body);
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.status(200).json({ card });
 }
@@ -38,7 +39,7 @@ export async function updateCover(req, res) {
 export async function addAttachment(req, res) {
   const { id } = req.params;
   const card = await cardService.addAttachment(id, req.body);
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.status(201).json({ card });
 }
@@ -46,14 +47,14 @@ export async function addAttachment(req, res) {
 export async function removeAttachment(req, res) {
   const { id, attachmentId } = req.params;
   const card = await cardService.removeAttachment(id, attachmentId);
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.status(200).json({ card });
 }
 
 export async function deleteCard(req, res) {
   const card = await cardService.deleteCard(req.params.id);
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.status(204).send();
 }
@@ -66,7 +67,7 @@ export async function moveCard(req, res) {
     boardId,
     targetIndex
   );
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.status(200).json({ card });
 }
@@ -88,7 +89,7 @@ export async function getCardsByAssignedUser(req, res) {
 export async function updateLabels(req, res) {
   const { labelIds } = req.body;
   const card = await cardService.updateCardLabels(req.params.id, labelIds);
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.json({ card });
 }
@@ -128,7 +129,7 @@ export async function addAssignee(req, res) {
     req.params.id,
     req.body.userId
   );
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.status(200).json({ card });
 }
@@ -138,7 +139,7 @@ export async function removeAssignee(req, res) {
     req.params.id,
     req.params.userId
   );
-  if (!card) throw createError(404, "Card not found");
+  if (!card) throwNotFound("Card");
 
   res.status(200).json({ card });
 }

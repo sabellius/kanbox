@@ -32,36 +32,38 @@
 // Example: Controller pattern with error handling
 import * as boardService from "../services/board-service.js";
 import createError from "http-errors";
+import { throwNotFound, throwBadRequest } from "../utils/error-utils.js";
 
 export async function createBoard(req, res) {
-  try {
-    const { title, description, appearance, workspaceId } = req.body;
-    const owner = {
-      userId: req.currentUser._id,
-      username: req.currentUser.username,
-      fullname: req.currentUser.fullname,
-    };
-    const board = await boardService.createBoard({
-      title,
-      description,
-      owner,
-      appearance,
-      workspaceId,
-    });
-    res.status(201).json({ board });
-  } catch (err) {
-    if (err.name === "ValidationError") {
-      return res.status(400).json({ error: err.message });
-    }
-    res.status(500).json({ error: "Failed to create board" });
-  }
+  const { title, description, appearance, workspaceId } = req.body;
+  const owner = {
+    userId: req.currentUser._id,
+    username: req.currentUser.username,
+    fullname: req.currentUser.fullname,
+  };
+  const board = await boardService.createBoard({
+    title,
+    description,
+    owner,
+    appearance,
+    workspaceId,
+  });
+  res.status(201).json({ board });
 }
 
-// Example: Controller using createError for middleware error handling
+// Example: Controller using error utility functions
 export async function deleteBoard(req, res) {
   const board = await boardService.deleteBoard(req.params.id);
-  if (!board) throw createError(404, "Board not found");
+  if (!board) throwNotFound("Board");
   res.status(204).send();
+}
+
+// Example: Controller with custom validation
+export async function updateBoard(req, res) {
+  const { title } = req.body;
+  if (!title) throwBadRequest("title is required");
+  const board = await boardService.updateBoard(req.params.id, req.body);
+  res.status(200).json({ board });
 }
 ```
 
@@ -547,6 +549,12 @@ function errorHandler(err, _req, res, _next) {
     error = createError(401, "Token expired");
   }
 
+  // Handle MongoDB duplicate key errors
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyPattern)[0];
+    error = createError(409, `${field} already exists`);
+  }
+
   // Handle unexpected errors
   if (!createError.isHttpError(error)) {
     console.error("Unexpected error:", error);
@@ -571,35 +579,51 @@ export default errorHandler;
 
 **Controller Error Handling Patterns:**
 
-Controllers can handle errors in two ways:
+The project uses Express 5.x which has **built-in async error handling**. This means:
 
-1. **Using try/catch with manual error responses:**
+- ✅ No try/catch blocks needed in controllers
+- ✅ Express 5.x automatically catches errors from async route handlers
+- ✅ Errors are automatically passed to the error handler middleware
 
-```javascript
-export async function createBoard(req, res) {
-  try {
-    const board = await boardService.createBoard(req.body);
-    res.status(201).json({ board });
-  } catch (err) {
-    if (err.name === "ValidationError") {
-      return res.status(400).json({ error: err.message });
-    }
-    res.status(500).json({ error: "Failed to create board" });
-  }
-}
-```
-
-2. **Using createError to delegate to middleware:**
+**Standard Pattern (Recommended):**
 
 ```javascript
 import createError from "http-errors";
+import { throwNotFound } from "../utils/error-utils.js";
 
 export async function deleteBoard(req, res) {
   const board = await boardService.deleteBoard(req.params.id);
-  if (!board) throw createError(404, "Board not found");
+  if (!board) throwNotFound("Board");
   res.status(204).send();
 }
 ```
+
+**Using Error Utility Functions:**
+
+The project provides helper functions in [`backend/src/utils/error-utils.js`](backend/src/utils/error-utils.js:1):
+
+- `throwNotFound(resource)` - Throws 404 Not Found error
+- `throwBadRequest(message)` - Throws 400 Bad Request error
+- `throwUnauthorized(message)` - Throws 401 Unauthorized error
+- `throwForbidden(message)` - Throws 403 Forbidden error
+- `throwConflict(message)` - Throws 409 Conflict error
+
+**Common Error Codes:**
+
+| Status Code | Use Case                             | Example                      |
+| ----------- | ------------------------------------ | ---------------------------- |
+| 400         | Invalid input or validation          | Missing required field       |
+| 401         | Authentication failed                | Invalid token or credentials |
+| 403         | Insufficient permissions             | User lacks permission        |
+| 404         | Resource not found                   | Board/Card/User not found    |
+| 409         | Resource conflict                    | Duplicate email/username     |
+| 500         | Server error (handled by middleware) | Unexpected errors            |
+
+**Do NOT:**
+
+- ❌ Use try/catch blocks in controllers (Express 5.x handles this automatically)
+- ❌ Manually return error responses (delegate to middleware instead)
+- ❌ Duplicate error handling logic (middleware already handles common errors)
 
 ### Service Layer Pattern
 

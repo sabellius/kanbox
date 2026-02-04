@@ -1,5 +1,5 @@
 import * as workspaceService from "../services/workspace-service.js";
-import createError from "http-errors";
+import { throwNotFound } from "../utils/error-utils.js";
 
 export async function createWorkspace(req, res) {
   const { title, description } = req.body;
@@ -23,7 +23,7 @@ export async function getAllWorkspaces(_req, res) {
 
 export async function getWorkspaceById(req, res) {
   const workspace = await workspaceService.getWorkspaceById(req.params.id);
-  if (!workspace) throw createError(404, "Workspace not found");
+  if (!workspace) throwNotFound("Workspace");
 
   res.json({ workspace });
 }
@@ -34,14 +34,14 @@ export async function updateWorkspace(req, res) {
     title,
     description,
   });
-  if (!workspace) throw createError(404, "Workspace not found");
+  if (!workspace) throwNotFound("Workspace");
 
   res.json({ workspace });
 }
 
 export async function deleteWorkspace(req, res) {
   const workspace = await workspaceService.deleteWorkspace(req.params.id);
-  if (!workspace) throw createError(404, "Workspace not found");
+  if (!workspace) throwNotFound("Workspace");
 
   res.status(204).send();
 }
@@ -66,7 +66,7 @@ export async function removeWorkspaceMember(req, res) {
     req.params.id,
     req.params.memberId
   );
-  if (!workspace) throw createError(404, "Workspace not found");
+  if (!workspace) throwNotFound("Workspace");
 
   res.status(204).send();
 }

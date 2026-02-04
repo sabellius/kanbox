@@ -1,7 +1,7 @@
 # Dependencies
 
 node_modules/
-\*\*/node_modules/
+**/node_modules/
 .pnp
 .pnp.js
 
@@ -26,14 +26,14 @@ node_modules/
 
 # Large data files
 
-_.csv
-_.xlsx
+_*.csv
+_*.xlsx
 
 # dependencies
 
 /.pnp
-.pnp._
-.yarn/_
+.pnp.*
+.yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
@@ -55,7 +55,7 @@ _.xlsx
 # misc
 
 .DS_Store
-\*.pem
+*.pem
 
 # debug
 
@@ -66,7 +66,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 
-.env\*
+.env*
 
 # vercel
 
@@ -74,5 +74,5 @@ yarn-error.log*
 
 # typescript
 
-\*.tsbuildinfo
+*.tsbuildinfo
 next-env.d.ts

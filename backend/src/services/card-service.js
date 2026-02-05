@@ -12,8 +12,6 @@ export async function createCard(cardData) {
   if (!targetIndex) {
     const cards = await Card.find({ listId }).sort({ position: 1 });
     position = calculateNewPosition(cards, cards.length);
-  } else {
-    // TODO: implement inserting at specific index
   }
   const card = await Card.create({
     boardId,

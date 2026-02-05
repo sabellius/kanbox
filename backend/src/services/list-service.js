@@ -11,8 +11,6 @@ export async function createList(listData) {
   if (!targetIndex) {
     const lists = await List.find({ boardId }).sort({ position: 1 });
     position = calculateNewPosition(lists, lists.length);
-  } else {
-    // TODO: implement inserting at specific index
   }
   const list = await List.create({
     boardId,

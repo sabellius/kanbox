@@ -2,6 +2,7 @@ import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 import createError from "http-errors";
 import { throwNotFound } from "../utils/error-utils.js";
+import { AUTH_CONFIG } from "../config/auth.js";
 
 export async function signup(req, res) {
   const { email, username, fullname, password } = req.body;
@@ -15,9 +16,9 @@ export async function signup(req, res) {
     password,
   });
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "24h",
+    expiresIn: AUTH_CONFIG.JWT_EXPIRES_IN,
   });
-  res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+  res.cookie("token", token, AUTH_CONFIG.COOKIE_OPTIONS);
   res.status(201).json({ user: user.getSafeUser() });
 }
 
@@ -30,9 +31,9 @@ export async function login(req, res) {
   if (!passwordMatch) throw createError(401, "Invalid credentials");
 
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "24h",
+    expiresIn: AUTH_CONFIG.JWT_EXPIRES_IN,
   });
-  res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+  res.cookie("token", token, AUTH_CONFIG.COOKIE_OPTIONS);
   res.json({ user: user.getSafeUser() });
 }
 

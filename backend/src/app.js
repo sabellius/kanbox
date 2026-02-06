@@ -1,4 +1,4 @@
-import { config } from "./config";
+import { config } from "./config/index.js";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -44,7 +44,7 @@ app.get("/health", function (_req, res) {
   res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-if (config.app.env === "production") {
+if (config.env === "production") {
   // SPA routing - serve index.html for all non-API routes
   app.get("/{*splat}", function (_req, res) {
     res.sendFile(join(__dirname, "../public/index.html"));

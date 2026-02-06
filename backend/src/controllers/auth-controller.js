@@ -2,7 +2,7 @@ import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 import createError from "http-errors";
 import { throwNotFound } from "../utils/error-utils.js";
-import { config } from "../config";
+import { config } from "../config/index.js";
 
 export async function signup(req, res) {
   const { email, username, fullname, password } = req.body;

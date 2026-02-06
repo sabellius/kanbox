@@ -1,6 +1,6 @@
 import createError from "http-errors";
 import { v2 as cloudinary } from "cloudinary";
-import { config } from "../config";
+import { config } from "../config/index.js";
 
 function ensureConfigured() {
   const { cloudName, apiKey, apiSecret } = config.cloudinary;

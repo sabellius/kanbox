@@ -1,5 +1,5 @@
 import createError from "http-errors";
-import { config } from "../config/env.js";
+import { config } from "../config/index.js";
 
 function errorHandler(err, _req, res, _next) {
   let error = err;
@@ -40,7 +40,7 @@ function errorHandler(err, _req, res, _next) {
     error: error.message,
   };
 
-  if (config.app.env === "development") {
+  if (config.env === "development") {
     response.stack = error.stack;
   }
 

@@ -61,7 +61,6 @@ export function buildCardFilterQuery(filterBy = {}) {
     query.assignees = { $size: 0 };
   }
 
-  console.log("🚀 ~ buildCardFilterQuery ~ query:", query);
   return query;
 }
 

@@ -1,4 +1,4 @@
-import { config } from "./config/env.js";
+import { config } from "./config";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -21,7 +21,6 @@ const corsOptions = {
   credentials: true,
 };
 
-// Only set specific origin for development or when frontend is served separately
 if (config.cors.origin) {
   corsOptions.origin = config.cors.origin;
 }
@@ -31,7 +30,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-if (config.app.env === "development") {
+if (config.env === "development") {
   app.use(morgan("dev"));
 } else {
   app.use(morgan("combined"));

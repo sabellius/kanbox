@@ -1,14 +1,15 @@
 import "dotenv/config";
-import { config } from "./config/env.js";
+import { config, validateEnv } from "./config";
 import app from "./app.js";
 import { connectDatabase } from "./config/database.js";
 
-const PORT = config.app.port;
-const NODE_ENV = config.app.env;
+const PORT = config.port;
+const NODE_ENV = config.env;
 const URL = `http://localhost:${PORT}`;
 
 async function startServer() {
   try {
+    validateEnv();
     app.listen(PORT, async () => {
       console.log(`Server is running on port ${PORT}`);
       console.log(`Environment: ${NODE_ENV}`);

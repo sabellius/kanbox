@@ -1,6 +1,7 @@
 import * as boardService from "../services/board-service.js";
 import createError from "http-errors";
 import { throwNotFound } from "../utils/error-utils.js";
+import { sanitizeHTML, sanitizePlainText } from "../utils/sanitize.js";
 
 export async function createBoard(req, res) {
   const { title, description, appearance, workspaceId } = req.body;
@@ -10,8 +11,8 @@ export async function createBoard(req, res) {
     fullname: req.currentUser.fullname,
   };
   const board = await boardService.createBoard({
-    title,
-    description,
+    title: sanitizePlainText(title),
+    description: sanitizeHTML(description),
     owner,
     appearance,
     workspaceId,
@@ -64,8 +65,8 @@ export async function getFullBoardById(req, res) {
 export async function updateBoard(req, res) {
   const { title, description, owner, appearance } = req.body;
   const board = await boardService.updateBoard(req.params.id, {
-    title,
-    description,
+    title: title ? sanitizePlainText(title) : title,
+    description: description ? sanitizeHTML(description) : description,
     owner,
     appearance,
   });
@@ -91,7 +92,7 @@ export async function getBoardLabels(req, res) {
 export async function addBoardLabel(req, res) {
   const { title, color } = req.body;
   const label = await boardService.addLabelToBoard(req.params.id, {
-    title,
+    title: sanitizePlainText(title),
     color,
   });
   if (!label) throwNotFound("Board");
@@ -104,7 +105,7 @@ export async function updateBoardLabel(req, res) {
   const updatedLabel = await boardService.updateLabelInBoard(
     req.params.id,
     req.params.labelId,
-    { title, color }
+    { title: title ? sanitizePlainText(title) : title, color }
   );
   if (!updatedLabel) throwNotFound("Label");
 

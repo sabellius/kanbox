@@ -30,8 +30,8 @@ import {
   addCommentSchema,
   addAttachmentSchema,
   updateCoverSchema,
-  idParamSchema,
 } from "../validation/schemas/card.js";
+import { idParamSchema } from "../validation/schemas/common.js";
 
 const router = express.Router();
 

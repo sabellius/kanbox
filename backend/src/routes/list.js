@@ -17,8 +17,8 @@ import {
   updateListSchema,
   moveListSchema,
   copyListSchema,
-  idParamSchema,
 } from "../validation/schemas/list.js";
+import { idParamSchema } from "../validation/schemas/common.js";
 
 const router = express.Router();
 

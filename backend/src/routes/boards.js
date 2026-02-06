@@ -19,8 +19,8 @@ import {
   updateBoardSchema,
   createLabelSchema,
   updateLabelSchema,
-  idParamSchema,
 } from "../validation/schemas/board.js";
+import { idParamSchema } from "../validation/schemas/common.js";
 
 const router = express.Router();
 

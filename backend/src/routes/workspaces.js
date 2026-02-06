@@ -19,8 +19,8 @@ import {
   createWorkspaceSchema,
   updateWorkspaceSchema,
   addMemberSchema,
-  idParamSchema,
 } from "../validation/schemas/workspace.js";
+import { idParamSchema } from "../validation/schemas/common.js";
 
 const router = express.Router();
 

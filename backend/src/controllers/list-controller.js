@@ -1,9 +1,17 @@
 import * as listService from "../services/list-service.js";
 import createError from "http-errors";
 import { throwNotFound } from "../utils/error-utils.js";
+import { sanitizeHTML, sanitizePlainText } from "../utils/sanitize.js";
 
 export async function createList(req, res) {
-  const list = await listService.createList(req.body);
+  const sanitizedData = {
+    ...req.body,
+    title: sanitizePlainText(req.body.title),
+    description: req.body.description
+      ? sanitizeHTML(req.body.description)
+      : req.body.description,
+  };
+  const list = await listService.createList(sanitizedData);
   res.status(201).json({ list });
 }
 
@@ -23,7 +31,14 @@ export async function getListsByBoardId(req, res) {
 }
 
 export async function updateList(req, res) {
-  const list = await listService.updateList(req.params.id, req.body);
+  const sanitizedData = {
+    ...req.body,
+    title: req.body.title ? sanitizePlainText(req.body.title) : req.body.title,
+    description: req.body.description
+      ? sanitizeHTML(req.body.description)
+      : req.body.description,
+  };
+  const list = await listService.updateList(req.params.id, sanitizedData);
   if (!list) throwNotFound("List");
 
   res.status(200).json({ list });

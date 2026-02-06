@@ -121,6 +121,34 @@ Request → Middleware → Route → Controller → Service → Model → Databa
 3. **Services** (`backend/src/services/`) - Contain business logic, reusable functions
 4. **Models** (`backend/src/models/`) - Define data structure, validation, and database operations
 5. **Middleware** (`backend/src/middleware/`) - Request interceptors (auth, permissions, error handling)
+6. **Validation** (`backend/src/validation/`) - Request input validation using Zod 4
+
+**Example Route with Full Middleware Chain:**
+
+```javascript
+// routes/boards.js
+router.put(
+  "/boards/:boardId",
+  validate({ params: idParamSchema, body: updateBoardSchema }), // 1. Validate input (fast, no DB)
+  authenticate, // 2. Verify JWT, attach currentUser
+  loadBoard, // 3. Fetch board, attach req.board
+  requireBoardAdmin, // 4. Check if user is board admin
+  boardController.update // 5. Execute update logic
+);
+```
+
+**Middleware Order Rationale:**
+
+1. **Validation first** - Reject invalid input before expensive database queries
+2. **Authentication second** - Identify the user making the request
+3. **Authorization third** - Check permissions (requires DB query)
+4. **Controller fourth** - Execute business logic
+
+This order ensures:
+
+- Performance: Fast validation before slow DB operations
+- Correct error codes: 400 for validation, 401 for auth, 403 for authorization
+- Security: Authorization logic receives validated, clean input
 
 **Example Route with Full Middleware Chain:**
 
@@ -152,11 +180,293 @@ User Interaction → Component → Redux Action → API Service → Backend
 - **Store** (`frontend/src/store/`) - Redux state management (legacy)
 - **Services** (`frontend/src/services/`) - API calls and utilities
 
+---
+
+## Input Validation Layer
+
+### Overview
+
+The project uses **Zod 4** for comprehensive input validation with modern syntax and best practices.
+
+### Validation Structure
+
+```
+backend/src/validation/
+├── schemas/
+│   ├── common.js       # Reusable schemas (ObjectId, dates, pagination)
+│   ├── auth.js         # Authentication schemas (signup, login)
+│   ├── board.js        # Board schemas (create, update, labels)
+│   ├── card.js         # Card schemas (create, update, move, comments, attachments)
+│   ├── list.js         # List schemas (create, update, move, copy)
+│   ├── workspace.js    # Workspace schemas (create, update, members)
+│   └── index.js         # Central export for all schemas
+├── middleware.js            # Validation middleware factory
+└── index.js                # Central export for validation utilities
+```
+
+### Modern Zod 4 Features
+
+1. **Top-level validators** - `z.email()`, `z.url()`, `z.iso.datetime()` instead of deprecated method chains
+2. **Strict objects** - `z.strictObject()` to reject unknown fields
+3. **Type coercion** - `z.coerce.number()` for query parameters
+4. **Async validation** - `parseAsync()` for async operations
+5. **Refinements** - Regex patterns for password, username, color hex codes
+6. **Partial schemas** - `.partial()` for update operations
+
+### Validation Middleware
+
+```javascript
+// backend/src/middleware/validate.js
+export function validate(schemas) {
+  return async (req, _res, next) => {
+    try {
+      if (schemas.body) {
+        req.body = await schemas.body.parseAsync(req.body);
+      }
+      if (schemas.query) {
+        req.query = await schemas.query.parseAsync(req.query);
+      }
+      if (schemas.params) {
+        req.params = await schemas.params.parseAsync(req.params);
+      }
+      next();
+    } catch (error) {
+      if (error.name === "ZodError") {
+        const messages = error.errors
+          .map(err => `${err.path.join(".")}: ${err.message}`)
+          .join(", ");
+        return next(createError(400, messages));
+      }
+      next(error);
+    }
+  };
+}
+```
+
+### Schema Examples
+
+**Authentication Schema:**
+
+```javascript
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(128, "Password must be less than 128 characters")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(
+    /[^a-zA-Z0-9]/,
+    "Password must contain at least one special character"
+  );
+
+const emailSchema = z.email().toLowerCase().trim();
+
+export const signupSchema = z.strictObject({
+  email: emailSchema,
+  username: z
+    .string()
+    .min(3)
+    .max(30)
+    .regex(/^[a-zA-Z0-9_-]+$/),
+  fullname: z.string().min(1).max(100).trim(),
+  password: passwordSchema,
+});
+```
+
+**Common Schemas:**
+
+```javascript
+// MongoDB ObjectId validation
+export const objectIdSchema = z
+  .string()
+  .refine(val => mongoose.Types.ObjectId.isValid(val), {
+    message: "Invalid ObjectId format",
+  });
+
+// ISO 8601 datetime validation
+export const dateSchema = z.iso.datetime().optional();
+
+// Pagination with type coercion
+export const paginationQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+```
+
+### Usage in Routes
+
+```javascript
+import { validate } from "../middleware/validate.js";
+import {
+  createBoardSchema,
+  updateBoardSchema,
+  idParamSchema,
+} from "../validation/schemas/board.js";
+
+router.post(
+  "/",
+  validate({ body: createBoardSchema }), // 1. Validate input (fast, no DB)
+  authenticate, // 2. Verify JWT (fast)
+  canCreateBoard(), // 3. Check authorization (slow, DB query)
+  createBoard // 4. Controller
+);
+
+router.put(
+  "/:id",
+  validate({ params: idParamSchema, body: updateBoardSchema }),
+  authenticate,
+  canManageBoard(),
+  updateBoard
+);
+```
+
 ### File Size Guidelines
 
 - Keep components under 200 lines when possible
 - Split large components into smaller sub-components
 - Extract reusable logic into custom hooks or utility functions
+
+---
+
+## Input Validation Layer
+
+### Overview
+
+The project uses **Zod 4** for comprehensive input validation with modern syntax and best practices.
+
+### Validation Structure
+
+```
+backend/src/validation/
+├── schemas/
+│   ├── common.js       # Reusable schemas (ObjectId, dates, pagination)
+│   ├── auth.js         # Authentication schemas (signup, login)
+│   ├── board.js        # Board schemas (create, update, labels)
+│   ├── card.js         # Card schemas (create, update, move, comments, attachments)
+│   ├── list.js         # List schemas (create, update, move, copy)
+│   ├── workspace.js    # Workspace schemas (create, update, members)
+│   └── index.js         # Central export for all schemas
+├── middleware.js            # Validation middleware factory
+└── index.js                # Central export for validation utilities
+```
+
+### Modern Zod 4 Features
+
+1. **Top-level validators** - `z.email()`, `z.url()`, `z.iso.datetime()` instead of deprecated method chains
+2. **Strict objects** - `z.strictObject()` to reject unknown fields
+3. **Type coercion** - `z.coerce.number()` for query parameters
+4. **Async validation** - `parseAsync()` for async operations
+5. **Refinements** - Regex patterns for password, username, color hex codes
+6. **Partial schemas** - `.partial()` for update operations
+
+### Validation Middleware
+
+```javascript
+// backend/src/middleware/validate.js
+export function validate(schemas) {
+  return async (req, _res, next) => {
+    try {
+      if (schemas.body) {
+        req.body = await schemas.body.parseAsync(req.body);
+      }
+      if (schemas.query) {
+        req.query = await schemas.query.parseAsync(req.query);
+      }
+      if (schemas.params) {
+        req.params = await schemas.params.parseAsync(req.params);
+      }
+      next();
+    } catch (error) {
+      if (error.name === "ZodError") {
+        const messages = error.errors
+          .map(err => `${err.path.join(".")}: ${err.message}`)
+          .join(", ");
+        return next(createError(400, messages));
+      }
+      next(error);
+    }
+  };
+}
+```
+
+### Schema Examples
+
+**Authentication Schema:**
+
+```javascript
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(128, "Password must be less than 128 characters")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(
+    /[^a-zA-Z0-9]/,
+    "Password must contain at least one special character"
+  );
+
+const emailSchema = z.email().toLowerCase().trim();
+
+export const signupSchema = z.strictObject({
+  email: emailSchema,
+  username: z
+    .string()
+    .min(3)
+    .max(30)
+    .regex(/^[a-zA-Z0-9_-]+$/),
+  fullname: z.string().min(1).max(100).trim(),
+  password: passwordSchema,
+});
+```
+
+**Common Schemas:**
+
+```javascript
+// MongoDB ObjectId validation
+export const objectIdSchema = z
+  .string()
+  .refine(val => mongoose.Types.ObjectId.isValid(val), {
+    message: "Invalid ObjectId format",
+  });
+
+// ISO 8601 datetime validation
+export const dateSchema = z.iso.datetime().optional();
+
+// Pagination with type coercion
+export const paginationQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+```
+
+### Usage in Routes
+
+```javascript
+import { validate } from "../middleware/validate.js";
+import {
+  createBoardSchema,
+  updateBoardSchema,
+  idParamSchema,
+} from "../validation/schemas/board.js";
+
+router.post(
+  "/",
+  validate({ body: createBoardSchema }), // 1. Validate input (fast, no DB)
+  authenticate, // 2. Verify JWT (fast)
+  canCreateBoard(), // 3. Check authorization (slow, DB query)
+  createBoard // 4. Controller
+);
+
+router.put(
+  "/:id",
+  validate({ params: idParamSchema, body: updateBoardSchema }),
+  authenticate,
+  canManageBoard(),
+  updateBoard
+);
+```
 
 ---
 

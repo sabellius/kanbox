@@ -1,9 +1,16 @@
 import * as cardService from "../services/card-service.js";
 import { Card } from "../models/Card.js";
 import { throwNotFound } from "../utils/error-utils.js";
+import { sanitizeHTML, sanitizePlainText } from "../utils/sanitize.js";
 
 export async function createCard(req, res) {
-  const card = await cardService.createCard(req.body);
+  const sanitizedData = {
+    ...req.body,
+    title: sanitizePlainText(req.body.title),
+    description: sanitizeHTML(req.body.description),
+  };
+
+  const card = await cardService.createCard(sanitizedData);
   res.status(201).json({ card });
 }
 
@@ -20,7 +27,17 @@ export async function getCardById(req, res) {
 }
 
 export async function updateCard(req, res) {
-  const card = await cardService.updateCard(req.params.id, req.body);
+  const sanitizedData = { ...req.body };
+
+  if (req.body.title) {
+    sanitizedData.title = sanitizePlainText(req.body.title);
+  }
+
+  if (req.body.description) {
+    sanitizedData.description = sanitizeHTML(req.body.description);
+  }
+
+  const card = await cardService.updateCard(req.params.id, sanitizedData);
   if (!card) throwNotFound("Card");
 
   res.json({ card });
@@ -94,7 +111,7 @@ export async function updateLabels(req, res) {
 
 export async function addComment(req, res) {
   const { id } = req.params;
-  const { text } = req.body;
+  const text = sanitizePlainText(req.body.text);
 
   const card = await cardService.addComment(id, req.currentUser, text);
   res.status(201).json({ card });
@@ -102,7 +119,7 @@ export async function addComment(req, res) {
 
 export async function updateComment(req, res) {
   const { id, commentId } = req.params;
-  const { text } = req.body;
+  const text = sanitizePlainText(req.body.text);
 
   const card = await cardService.updateComment(id, commentId, text);
   res.json({ card });

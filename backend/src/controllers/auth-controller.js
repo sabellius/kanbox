@@ -2,7 +2,7 @@ import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 import createError from "http-errors";
 import { throwNotFound } from "../utils/error-utils.js";
-import { AUTH_CONFIG } from "../config/auth.js";
+import { config } from "../config";
 
 export async function signup(req, res) {
   const { email, username, fullname, password } = req.body;
@@ -15,10 +15,10 @@ export async function signup(req, res) {
     fullname,
     password,
   });
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: AUTH_CONFIG.JWT_EXPIRES_IN,
+  const token = jwt.sign({ userId: user._id }, config.auth.jwt.secret, {
+    expiresIn: config.auth.jwt.expiresIn,
   });
-  res.cookie("token", token, AUTH_CONFIG.COOKIE_OPTIONS);
+  res.cookie("token", token, config.auth.cookie);
   res.status(201).json({ user: user.getSafeUser() });
 }
 
@@ -30,10 +30,10 @@ export async function login(req, res) {
   const passwordMatch = await user.comparePassword(password);
   if (!passwordMatch) throw createError(401, "Invalid credentials");
 
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: AUTH_CONFIG.JWT_EXPIRES_IN,
+  const token = jwt.sign({ userId: user._id }, config.auth.jwt.secret, {
+    expiresIn: config.auth.jwt.expiresIn,
   });
-  res.cookie("token", token, AUTH_CONFIG.COOKIE_OPTIONS);
+  res.cookie("token", token, config.auth.cookie);
   res.json({ user: user.getSafeUser() });
 }
 
@@ -46,7 +46,7 @@ export async function getCurrentUser(req, res) {
   const token = req.cookies.token;
   if (!token) throw createError(401, "Invalid credentials");
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const decoded = jwt.verify(token, config.auth.jwt.secret);
   const user = await User.findById(decoded.userId);
   if (!user) throwNotFound("User");
 

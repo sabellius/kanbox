@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { AUTH_CONFIG } from "../config/auth.js";
+import { config } from "../config";
 
 const userSchema = new mongoose.Schema(
   {
@@ -35,7 +35,7 @@ userSchema.pre("save", async function (next) {
 
   this.password = await bcrypt.hash(
     this.password,
-    AUTH_CONFIG.BCRYPT_SALT_ROUNDS
+    config.auth.bcrypt.saltRounds
   );
   next();
 });

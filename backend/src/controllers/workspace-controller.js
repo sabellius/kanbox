@@ -1,5 +1,6 @@
 import * as workspaceService from "../services/workspace-service.js";
 import { throwNotFound } from "../utils/error-utils.js";
+import { sanitizeHTML, sanitizePlainText } from "../utils/sanitize.js";
 
 export async function createWorkspace(req, res) {
   const { title, description } = req.body;
@@ -9,8 +10,8 @@ export async function createWorkspace(req, res) {
     fullname: req.currentUser.fullname,
   };
   const workspace = await workspaceService.createWorkspace({
-    title,
-    description,
+    title: sanitizePlainText(title),
+    description: description ? sanitizeHTML(description) : description,
     owner,
   });
   res.status(201).json({ workspace });
@@ -31,8 +32,8 @@ export async function getWorkspaceById(req, res) {
 export async function updateWorkspace(req, res) {
   const { title, description } = req.body;
   const workspace = await workspaceService.updateWorkspace(req.params.id, {
-    title,
-    description,
+    title: title ? sanitizePlainText(title) : title,
+    description: description ? sanitizeHTML(description) : description,
   });
   if (!workspace) throwNotFound("Workspace");
 

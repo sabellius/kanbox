@@ -375,15 +375,58 @@ export const requireBoardAdmin = (req, res, next) => {
 };
 ```
 
+### Input Sanitization
+
+**XSS Protection with DOMPurify** (`backend/src/utils/sanitize.js`):
+
+The project uses isomorphic-dompurify for server-side HTML sanitization to prevent XSS attacks:
+
+```javascript
+import DOMPurify from "isomorphic-dompurify";
+
+export function sanitizeHTML(dirty) {
+  if (!dirty || typeof dirty !== "string") return dirty;
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "br", "ul", "ol", "li"],
+    ALLOWED_ATTR: ["href"],
+  });
+}
+
+export function sanitizePlainText(dirty) {
+  if (!dirty || typeof dirty !== "string") return dirty;
+  return DOMPurify.sanitize(dirty, { ALLOWED_TAGS: [] });
+}
+```
+
+**Sanitization Coverage:**
+
+- **Cards**: title (plain text), description (HTML), comments (HTML)
+- **Boards**: title (plain text), description (HTML), labels (plain text)
+- **Lists**: title (plain text), description (HTML)
+- **Workspaces**: title (plain text), description (HTML)
+
+All user-generated content is sanitized in controllers before being passed to services.
+
+### CSRF Protection
+
+**Cookie-based Protection:**
+
+- JWT tokens stored in HTTP-only cookies with `sameSite: "strict"`
+- Provides automatic CSRF protection for same-site requests
+- No additional CSRF tokens needed for current architecture
+
 ### Security Best Practices
 
-- Never commit API keys or secrets - use environment variables
-- Validate all user inputs on both client and server
-- Use parameterized queries for database access (Mongoose handles this)
-- Implement rate limiting for API endpoints (not yet implemented)
-- Sanitize file uploads using Cloudinary
-- Use HTTPS in production
-- Set CORS origin to specific frontend URL in production
+- ✅ Never commit API keys or secrets - use environment variables
+- ✅ Input sanitization with DOMPurify for XSS protection
+- ✅ HTTP-only cookies with sameSite=strict for CSRF protection
+- ✅ Password hashing with bcrypt (12 salt rounds)
+- ✅ Environment variable validation on startup
+- ✅ Use parameterized queries for database access (Mongoose handles this)
+- ⚠️ Rate limiting for API endpoints (not yet implemented)
+- ✅ Sanitize file uploads using Cloudinary
+- ✅ Use HTTPS in production
+- ✅ Set CORS origin to specific frontend URL in production
 
 ---
 

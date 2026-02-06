@@ -1,9 +1,9 @@
 import createError from "http-errors";
 import { v2 as cloudinary } from "cloudinary";
-import { config } from "../config/env.js";
+import { config } from "../config";
 
 function ensureConfigured() {
-  const { cloudName, apiKey, apiSecret } = config.cloudinary || {};
+  const { cloudName, apiKey, apiSecret } = config.cloudinary;
   if (!cloudName || !apiKey || !apiSecret) {
     throw createError(503, "Upload provider is not configured");
   }

@@ -123,8 +123,8 @@ async function showCollectionStats() {
  */
 async function cleanDatabase() {
   try {
-    // Connect to database
-    await mongoose.connect(process.env.MONGODB_URI);
+    const { config } = await import("../config");
+    await mongoose.connect(config.db.uri);
     console.log(`🔗 Connected to database: ${mongoose.connection.name}`);
 
     // Show current state
@@ -248,7 +248,8 @@ if (isMainModule) {
     // Stats only mode
     (async () => {
       try {
-        await mongoose.connect(process.env.MONGODB_URI);
+        const { config } = await import("../config");
+        await mongoose.connect(config.db.uri);
         console.log(`🔗 Connected to database: ${mongoose.connection.name}`);
         await showCollectionStats();
       } catch (error) {
@@ -262,7 +263,8 @@ if (isMainModule) {
     // Direct cleanup mode
     (async () => {
       try {
-        await mongoose.connect(process.env.MONGODB_URI);
+        const { config } = await import("../config");
+        await mongoose.connect(config.db.uri);
         console.log(`🔗 Connected to database: ${mongoose.connection.name}`);
 
         if (!options.force) {

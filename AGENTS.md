@@ -408,6 +408,34 @@ export const requireBoardAdmin = (req, res, next) => {
 
 ## Development Workflow
 
+### Configuration System
+
+The backend uses a modular configuration system with domain-specific config files:
+
+**Configuration Structure:**
+
+- `backend/src/config/index.js` - Central aggregator with validation
+- `backend/src/config/auth.js` - JWT, cookies, bcrypt settings
+- `backend/src/config/db.js` - MongoDB configuration
+- `backend/src/config/server.js` - Express server, CORS, port
+- `backend/src/config/cloudinary.js` - File upload settings
+
+**Usage:**
+
+```javascript
+import { config } from "../config/index.js";
+
+const port = config.port;
+const jwtSecret = config.auth.jwt.secret;
+const dbUri = config.db.uri;
+```
+
+**Environment Validation:**
+
+- Validates required env vars on startup
+- Enforces JWT_SECRET >= 32 chars in production
+- Fails fast if configuration is invalid
+
 ### Environment Setup
 
 **Backend Environment Variables** (`backend/.env`):
@@ -522,7 +550,7 @@ The project uses a centralized error handling middleware that catches and format
 
 ```javascript
 import createError from "http-errors";
-import { config } from "../config/env.js";
+import { config } from "../config/index.js";
 
 function errorHandler(err, _req, res, _next) {
   let error = err;

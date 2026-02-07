@@ -15,6 +15,7 @@
 - Authentication: JWT tokens in HTTP-only cookies (XSS protection)
 - Drag-and-Drop: Hello Pangea DnD with fractional indexing (O(1) performance)
 - File Storage: Cloudinary CDN for image uploads
+- **Testing:** Vitest with mongodb-memory-server for unit testing (added 2026-02-07)
 
 ---
 

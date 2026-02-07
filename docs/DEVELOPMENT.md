@@ -8,6 +8,64 @@ This guide will help you set up the development environment and understand the p
 
 ## Table of Contents
 
+---
+
+## API Testing
+
+### Overview
+
+The project uses **Vitest** as the test runner for backend unit testing with **mongodb-memory-server** for in-memory MongoDB database isolation.
+
+### Test Structure
+
+```
+backend/tests/
+├── setup.js                    # Test database setup
+└── unit/
+    └── services/
+        ├── board-service.test.js   # 18 tests for board service
+        └── card-service.test.js    # 31 tests for card service
+```
+
+### Running Tests
+
+```bash
+cd backend
+npm test          # Run tests in watch mode
+npm run test:run   # Run tests once
+```
+
+### Test Coverage
+
+Currently implemented 49 unit tests covering:
+
+- Board service CRUD operations (create, read, update, delete)
+- Board label management (add, update, remove)
+- Card service CRUD operations (create, read, update, delete)
+- Card cover management (update with color, image, text overlay)
+- Card attachment management (add, remove)
+- Card comments retrieval
+
+### Key Features
+
+- **Vitest**: Fast, modern test runner with native ESM support
+- **mongodb-memory-server**: In-memory MongoDB for isolated database testing
+- **ESLint globals**: Configured to recognize Vitest global functions
+- **Test isolation**: Each test runs in isolation with database cleanup between tests
+- **Fast execution**: All 49 tests complete in ~4.5 seconds
+
+### Next Steps
+
+To expand testing coverage:
+
+1. Add tests for remaining services (list-service, workspace-service)
+2. Add tests for utility functions (error-utils, sanitize, utils)
+3. Add tests for middleware (authenticate, authorize, validate)
+4. Add integration tests for API endpoints using Supertest
+5. Add coverage reporting with @vitest/coverage-v8
+
+---
+
 1. [Prerequisites](#prerequisites)
 2. [Initial Setup](#initial-setup)
 3. [Project Structure](#project-structure)

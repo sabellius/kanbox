@@ -1,16 +1,17 @@
 {
-  "name": "kanbox",
+  "name": "kanbox-frontend",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:serve": "vite build --outDir ../backend/public --emptyOutDir",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@atlaskit/tokens": "^8.0.0",
+    "@atlaskit/tokens": "^11.0.0",
     "@cloudinary/react": "^1.14.3",
     "@cloudinary/url-gen": "^1.22.0",
     "@emotion/react": "^11.14.0",

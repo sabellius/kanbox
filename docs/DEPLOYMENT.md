@@ -8,13 +8,100 @@ This guide covers deploying Kanbox to production environments. Choose the deploy
 
 ## Table of Contents
 
-1. [Pre-Deployment Checklist](#pre-deployment-checklist)
-2. [Environment Setup](#environment-setup)
-3. [Database Hosting](#database-hosting)
-4. [Deployment Options](#deployment-options)
-5. [Post-Deployment Configuration](#post-deployment-configuration)
-6. [Monitoring & Maintenance](#monitoring--maintenance)
-7. [Troubleshooting](#troubleshooting)
+1. [Docker Deployment (Self-Hosted)](#docker-deployment-self-hosted)
+2. [Pre-Deployment Checklist](#pre-deployment-checklist)
+3. [Environment Setup](#environment-setup)
+4. [Database Hosting](#database-hosting)
+5. [Deployment Options](#deployment-options)
+6. [Post-Deployment Configuration](#post-deployment-configuration)
+7. [Monitoring & Maintenance](#monitoring--maintenance)
+8. [Troubleshooting](#troubleshooting)
+
+---
+
+## Docker Deployment (Self-Hosted)
+
+Kanbox provides a multi-stage Docker setup for production. The frontend is built with Vite and statically served by the Express backend — no separate frontend service is needed.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────┐
+│  docker-compose.prod.yml                 │
+│                                          │
+│  ┌──────────┐     ┌──────────────────┐   │
+│  │  MongoDB  │◄────│  app (Express)  │   │
+│  │  (db)     │     │  API + static   │   │
+│  │  :27017   │     │  React build    │   │
+│  └──────────┘     │  :3000          │   │
+│                    └──────────────────┘   │
+│                           │              │
+└───────────────────────────┼──────────────┘
+                            │
+                       port 3000
+```
+
+### Quick Start
+
+```bash
+# 1. Create a production .env file at the repo root
+cp backend/.env.example .env
+# Edit .env with production values (JWT_SECRET, MONGO_USERNAME, etc.)
+
+# 2. Build and start everything
+docker compose -f docker-compose.prod.yml up --build -d
+
+# 3. Run database migrations
+docker compose -f docker-compose.prod.yml exec app node src/db/migrate.js up
+
+# 4. Verify
+curl http://localhost:3000/health
+```
+
+### Configuration
+
+The production compose file reads from a `.env` file at the repo root. Required variables:
+
+| Variable | Description |
+|----------|-------------|
+| `MONGO_USERNAME` | MongoDB root username |
+| `MONGO_PASSWORD` | MongoDB root password |
+| `MONGO_DATABASE` | Database name (default: `kanbox`) |
+| `JWT_SECRET` | JWT signing secret (64+ characters) |
+| `CORS_ORIGIN` | Allowed origin (leave empty for same-origin) |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+
+Optional:
+
+| Variable | Description |
+|----------|-------------|
+| `PORT` | Host port for the app (default: `3000`) |
+| `MONGO_PORT` | Host port for MongoDB (default: `27017`) |
+
+### Dockerfile Details
+
+The root `Dockerfile` uses a multi-stage build:
+
+1. **frontend-build** — Installs frontend deps, runs `vite build`
+2. **production** — Copies backend source + built frontend, installs production-only deps, runs as non-root user
+
+Features:
+- `npm ci --omit=dev` for reproducible, minimal installs
+- Non-root `kanbox` user for security
+- `HEALTHCHECK` on `/health` endpoint
+- Final image contains only production code and built assets
+
+### Stopping and Cleanup
+
+```bash
+# Stop containers (preserves data)
+docker compose -f docker-compose.prod.yml down
+
+# Stop and remove volumes (destroys database data)
+docker compose -f docker-compose.prod.yml down -v
+```
 
 ---
 

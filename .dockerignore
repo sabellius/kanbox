@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Version control
+.git/
+.gitignore
+
+# Documentation and non-essential files
+*.md
+docs/
+plans/
+memory-bank/
+LICENSE
+
+# IDE and editor
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+*.tmp
+*.temp
+.cache/
+
+# Test files
+backend/tests/
+
+# Build caches
+.prettiercache
+.eslintcache

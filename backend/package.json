@@ -21,7 +21,11 @@
     "db:clean": "node src/db/clean-db.js",
     "db:stats": "node src/db/clean-db.js --stats",
     "db:clean:all": "node src/db/clean-db.js --all",
-    "db:clean:force": "node src/db/clean-db.js --force-all"
+    "db:clean:force": "node src/db/clean-db.js --force-all",
+    "docker:dev": "docker compose up -d db",
+    "docker:dev:down": "docker compose down",
+    "docker:prod": "docker compose -f ../docker-compose.prod.yml up --build -d",
+    "docker:prod:down": "docker compose -f ../docker-compose.prod.yml down"
   },
   "keywords": [],
   "author": "",

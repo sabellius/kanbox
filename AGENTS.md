@@ -1098,10 +1098,31 @@ await Card.findByIdAndUpdate(cardId, { position: newPosition });
 
 ### Docker Setup
 
-- MongoDB runs in Docker container
+**Development (DB-only in Docker):**
+
+- MongoDB runs in Docker, backend and frontend run locally with `npm run dev`
 - Configuration in `backend/docker-compose.yml`
-- Start with: `docker compose up -d mongodb`
+- Start with: `cd backend && npm run docker:dev` (or `docker compose up -d db`)
 - MongoDB accessible at `localhost:27017`
+- Backend: `npm run dev` (nodemon, port 3000)
+- Frontend: `npm run dev` (Vite HMR, port 5173)
+
+**Production (everything in Docker):**
+
+- Multi-stage Dockerfile at repo root builds frontend with Vite, then serves from Express
+- Configuration in `docker-compose.prod.yml` (repo root)
+- Two services: `db` (MongoDB) and `app` (Express + static React build)
+- Start with: `docker compose -f docker-compose.prod.yml up --build -d`
+- Run migrations: `docker compose -f docker-compose.prod.yml exec app node src/db/migrate.js up`
+- No separate frontend service — Vite output served statically by Express
+- App runs as non-root user, includes healthcheck on `/health`
+
+**Docker convenience scripts (backend/package.json):**
+
+- `npm run docker:dev` — Start MongoDB for development
+- `npm run docker:dev:down` — Stop development MongoDB
+- `npm run docker:prod` — Build and start production stack
+- `npm run docker:prod:down` — Stop production stack
 
 ### Design System Integration
 

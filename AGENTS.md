@@ -16,6 +16,8 @@
 - Drag-and-Drop: Hello Pangea DnD with fractional indexing (O(1) performance)
 - File Storage: Cloudinary CDN for image uploads
 - **Testing:** Vitest with mongodb-memory-server for unit testing (added 2026-02-07)
+- **Production:** Multi-stage Docker build with docker-compose.prod.yml (added 2026-02-09)
+- **Orchestration:** Root-level package.json with convenience scripts and .nvmrc for Node.js version management (added 2026-02-09)
 
 ---
 
@@ -745,18 +747,460 @@ All user-generated content is sanitized in controllers before being passed to se
 
 ### Current State
 
-- No unit tests or integration tests currently implemented
-- Manual testing performed during development
-- API testing done with Postman or similar tools
+- **Vitest** with mongodb-memory-server for unit testing (added 2026-02-07)
+- 49 unit tests implemented for board-service and card-service
+- Test isolation with in-memory MongoDB
+- Fast execution: all tests complete in ~4.5 seconds
 
-### Testing Guidelines (Future)
+### Test Structure
+
+```
+backend/tests/
+├── setup.js                    # Test database setup
+└── unit/
+    └── services/
+        ├── board-service.test.js   # 18 tests for board service
+        └── card-service.test.js    # 31 tests for card service
+```
+
+### Running Tests
+
+```bash
+cd backend
+npm test          # Run tests in watch mode
+npm run test:run   # Run tests once
+```
+
+### Test Coverage
+
+Currently implemented 49 unit tests covering:
+
+- Board service CRUD operations (create, read, update, delete)
+- Board label management (add, update, remove)
+- Card service CRUD operations (create, read, update, delete)
+- Card cover management (update with color, image, text overlay)
+- Card attachment management (add, remove)
+- Card comments retrieval
+
+### Testing Guidelines
 
 - Write unit tests for all business logic in services
 - Maintain >80% code coverage
-- Use Jest for testing (backend)
+- Use Vitest for testing (backend)
 - Use React Testing Library for frontend components
 - Test authentication and permission middleware
 - Test database migrations
+
+### Next Steps
+
+To expand testing coverage:
+
+1. Add tests for remaining services (list-service, workspace-service)
+2. Add tests for utility functions (error-utils, sanitize, utils)
+3. Add tests for middleware (authenticate, authorize, validate)
+4. Add integration tests for API endpoints using Supertest
+5. Add coverage reporting with @vitest/coverage-v8
+
+---
+
+## Docker Production Build
+
+### Overview
+
+The project uses a multi-stage Docker build process for production deployment, building the entire application stack (backend + frontend) into a single optimized container image.
+
+### Dockerfile Structure
+
+**Multi-stage build process:**
+
+```dockerfile
+# Stage 1: Backend dependencies
+FROM node:22-alpine AS backend-deps
+WORKDIR /app
+COPY backend/package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Stage 2: Frontend build
+FROM node:22-alpine AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm ci --legacy-peer-deps && npm cache clean --force
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 3: Production image
+FROM node:22-alpine AS production
+WORKDIR /app
+COPY --from=backend-deps /app/node_modules ./node_modules
+COPY backend/package*.json ./
+COPY backend/src ./src
+COPY --from=frontend-build /app/frontend/dist ./public
+RUN addgroup -g 1001 -S kanbox && \
+    adduser -S kanbox -u 1001 -G kanbox && \
+    chown -R kanbox:kanbox /app
+USER kanbox
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+ENV NODE_ENV=production
+CMD ["node", "src/server.js"]
+```
+
+**Key Features:**
+
+- **Layer caching**: Separate stages for dependencies and code changes
+- **Optimized image size**: Only production dependencies included
+- **Security**: Runs as non-root user (kanbox:kanbox)
+- **Health check**: Automatic health monitoring with `/health` endpoint
+- **Static serving**: Express serves built frontend from `/public`
+
+### Docker Compose Production
+
+**File:** `docker-compose.prod.yml`
+
+```yaml
+services:
+  db:
+    image: mongo:8.2
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    env_file:
+      - backend/.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-kanbox}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - kanbox-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MONGODB_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@db:27017/${MONGO_DATABASE:-kanbox}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - kanbox-network
+
+volumes:
+  mongo_data:
+
+networks:
+  kanbox-network:
+    driver: bridge
+```
+
+**Key Features:**
+
+- **Service orchestration**: MongoDB and app run together with proper networking
+- **Health checks**: App waits for MongoDB to be healthy before starting
+- **Volume persistence**: MongoDB data persists across container restarts
+- **Network isolation**: Services communicate via internal Docker network
+- **Environment override**: Production-specific MongoDB URI uses service name `db`
+
+### Building and Running
+
+**Build production image:**
+
+```bash
+docker build -t kanbox:latest .
+```
+
+**Run with docker-compose:**
+
+```bash
+# Create .env.prod file with production values
+cp backend/.env .env.prod
+
+# Start all services
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+# View logs
+docker-compose -f docker-compose.prod.yml logs -f
+
+# Stop all services
+docker-compose -f docker-compose.prod.yml down
+```
+
+**Run single container:**
+
+```bash
+# Build image
+docker build -t kanbox:latest .
+
+# Run container with environment file
+docker run --env-file .env.prod -p 3000:3000 kanbox:latest
+```
+
+### Environment Variables for Production
+
+**File:** `.env.prod`
+
+```bash
+NODE_ENV=production
+PORT=3000
+CORS_ORIGIN=
+
+# Authentication
+JWT_SECRET=your_secure_jwt_secret_at_least_32_chars
+
+# MongoDB
+MONGO_USERNAME=admin
+MONGO_PASSWORD=your_secure_password
+MONGO_DATABASE=kanbox_production
+MONGODB_URI=mongodb://admin:password@localhost:27017/kanbox_production?authSource=admin
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+CLOUDINARY_FOLDER=kanbox-attachments-prod
+```
+
+**Important Notes:**
+
+- ⚠️ **Never commit** `.env.prod` to version control (added to `.gitignore`)
+- ✅ Use strong, randomly generated secrets for production
+- ✅ Set `CORS_ORIGIN` to your production frontend URL
+- ✅ Use MongoDB Atlas or secured MongoDB instance for production
+
+### .dockerignore
+
+The `.dockerignore` file excludes unnecessary files from the build context:
+
+```
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+/build/
+/dist/
+/.next/
+/out/
+
+/coverage/
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+_*.csv
+_*.xlsx
+
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+/coverage
+
+/.next/
+/out/
+
+/build
+
+.DS_Store
+*.pem
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+.env*
+
+.vercel
+
+*.tsbuildinfo
+next-env.d.ts
+
+.kilocodeignore
+```
+
+This ensures:
+
+- Faster build times (smaller build context)
+- Smaller final image size
+- No sensitive data in image
+- Clean production builds
+
+---
+
+## Project Orchestration
+
+### Overview
+
+The project includes a root-level package.json and .nvmrc file for improved tooling and Node.js version management.
+
+### Root-Level Package.json
+
+**File:** `package.json`
+
+```json
+{
+  "name": "kanbox",
+  "version": "1.0.0",
+  "description": "Kanbox - Collaborative Kanban Board Application",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "cd backend && npm test",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "docker:up": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker-compose -f docker-compose.prod.yml down",
+    "docker:logs": "docker-compose -f docker-compose.prod.yml logs -f"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+```
+
+**Key Features:**
+
+- **Convenience scripts**: Run development servers for both backend and frontend simultaneously
+- **Orchestration**: Build, test, and lint both parts of the application from root
+- **Docker commands**: Quick access to Docker Compose production commands
+- **Engine enforcement**: Ensures Node.js version >= 18.0.0
+
+### Available Scripts
+
+**Development:**
+
+```bash
+npm run dev              # Start both backend and frontend dev servers
+npm run dev:backend      # Start only backend dev server
+npm run dev:frontend     # Start only frontend dev server
+```
+
+**Building:**
+
+```bash
+npm run build            # Build both backend and frontend
+npm run build:backend    # Build only backend
+npm run build:frontend   # Build only frontend
+```
+
+**Testing & Linting:**
+
+```bash
+npm run test             # Run backend tests
+npm run lint             # Lint both backend and frontend
+npm run lint:backend     # Lint only backend
+npm run lint:frontend    # Lint only frontend
+```
+
+**Docker:**
+
+```bash
+npm run docker:up        # Start production Docker services
+npm run docker:down      # Stop production Docker services
+npm run docker:logs      # View production Docker logs
+```
+
+### .nvmrc File
+
+**File:** `.nvmrc`
+
+```
+18
+```
+
+**Purpose:**
+
+- Specifies Node.js version for the project
+- Allows tools like nvm/mise/asdf to automatically switch to correct version when entering the project directory
+- Ensures consistent Node.js version across team members
+- Complements the `engines` field in package.json
+
+**Usage:**
+
+When using nvm (Node Version Manager):
+
+```bash
+# Install required Node.js version if not already installed
+nvm install
+
+# Use the Node.js version specified in .nvmrc
+nvm use
+
+# Set as default for this directory
+nvm use default
+```
+
+**Benefits:**
+
+- Automatic version switching when changing directories
+- Prevents version mismatches between development and production
+- No need to manually specify Node.js version in commands
+- Works with other version managers (mise, asdf, etc.)
+
+### Configuration System
+
+The backend uses a modular configuration system with domain-specific config files:
+
+**Configuration Structure:**
+
+- `backend/src/config/index.js` - Central aggregator with validation
+- `backend/src/config/auth.js` - JWT, cookies, bcrypt settings
+- `backend/src/config/db.js` - MongoDB configuration
+- `backend/src/config/server.js` - Express server, CORS, port
+- `backend/src/config/cloudinary.js` - File upload settings
+
+**Usage:**
+
+```javascript
+import { config } from "../config/index.js";
+
+const port = config.port;
+const jwtSecret = config.auth.jwt.secret;
+const dbUri = config.db.uri;
+```
+
+**Environment Validation:**
+
+- Validates required env vars on startup
+- Enforces JWT_SECRET >= 32 chars in production
+- Fails fast if configuration is invalid
 
 ---
 

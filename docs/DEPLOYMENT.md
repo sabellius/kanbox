@@ -340,6 +340,228 @@ Follow Railway steps from Option 2.
 CORS_ORIGIN="https://your-app.vercel.app"
 ```
 
+### Option 5: Docker Compose (Self-Hosted)
+
+**Pricing:** VPS hosting costs vary ($5-50/month depending on specs)
+**Pros:** Full control, single container image, easy to scale, consistent environment
+**Cons:** Requires server management, manual SSL setup, no automatic scaling
+
+#### Prerequisites
+
+- VPS or dedicated server with Docker and Docker Compose installed
+- Domain name (optional, for HTTPS)
+- Basic knowledge of Docker and Linux administration
+
+#### Deployment Steps
+
+1. **Prepare Production Environment File**
+
+   ```bash
+   # Create production environment file
+   cp backend/.env .env.prod
+
+   # Edit with production values
+   nano .env.prod
+   ```
+
+   **Required variables:**
+
+   ```bash
+   NODE_ENV=production
+   PORT=3000
+   CORS_ORIGIN=https://your-domain.com
+   JWT_SECRET=your_secure_jwt_secret_at_least_32_chars
+   MONGO_USERNAME=admin
+   MONGO_PASSWORD=your_secure_password
+   MONGO_DATABASE=kanbox_production
+   CLOUDINARY_CLOUD_NAME=your_cloud_name
+   CLOUDINARY_API_KEY=your_api_key
+   CLOUDINARY_API_SECRET=your_api_secret
+   ```
+
+2. **Build Docker Image**
+
+   ```bash
+   # Build production image
+   docker build -t kanbox:latest .
+
+   # Verify image was created
+   docker images | grep kanbox
+   ```
+
+3. **Start Services with Docker Compose**
+
+   ```bash
+   # Start all services (MongoDB + app)
+   docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+   # Verify services are running
+   docker-compose -f docker-compose.prod.yml ps
+
+   # View logs
+   docker-compose -f docker-compose.prod.yml logs -f
+   ```
+
+4. **Verify Deployment**
+
+   ```bash
+   # Check health endpoint
+   curl http://localhost:3000/health
+
+   # Expected response:
+   # {"status":"OK","timestamp":"..."}
+   ```
+
+5. **Configure Reverse Proxy (Nginx) for HTTPS**
+
+   **Install Nginx:**
+
+   ```bash
+   sudo apt update
+   sudo apt install nginx certbot python3-certbot-nginx
+   ```
+
+   **Create Nginx configuration:**
+
+   ```nginx
+   # /etc/nginx/sites-available/kanbox
+   server {
+       listen 80;
+       server_name your-domain.com;
+
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+
+   **Enable site and obtain SSL certificate:**
+
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/kanbox /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl reload nginx
+
+   # Obtain free SSL certificate from Let's Encrypt
+   sudo certbot --nginx -d your-domain.com
+   ```
+
+   **Nginx will automatically configure HTTPS after certificate is obtained.**
+
+6. **Configure Firewall**
+
+   ```bash
+   # Allow SSH, HTTP, and HTTPS
+   sudo ufw allow 22/tcp
+   sudo ufw allow 80/tcp
+   sudo ufw allow 443/tcp
+   sudo ufw enable
+
+   # Block direct access to app port (only allow through Nginx)
+   sudo ufw deny 3000/tcp
+   ```
+
+#### Managing Docker Services
+
+**View logs:**
+
+```bash
+# All services
+docker-compose -f docker-compose.prod.yml logs -f
+
+# Specific service
+docker-compose -f docker-compose.prod.yml logs -f app
+docker-compose -f docker-compose.prod.yml logs -f db
+```
+
+**Restart services:**
+
+```bash
+# Restart all services
+docker-compose -f docker-compose.prod.yml restart
+
+# Restart specific service
+docker-compose -f docker-compose.prod.yml restart app
+```
+
+**Stop services:**
+
+```bash
+# Stop all services
+docker-compose -f docker-compose.prod.yml down
+
+# Stop and remove volumes (WARNING: deletes data!)
+docker-compose -f docker-compose.prod.yml down -v
+```
+
+**Update application:**
+
+```bash
+# Pull latest code
+git pull origin main
+
+# Rebuild and restart
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+```
+
+#### Database Backups
+
+**Automated backup script:**
+
+```bash
+#!/bin/bash
+# /usr/local/bin/backup-kanbox.sh
+
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR=/backups/kanbox
+mkdir -p $BACKUP_DIR
+
+# Backup MongoDB
+docker exec kanbox-db-1 mongodump --uri="mongodb://admin:password@localhost:27017/kanbox_production?authSource=admin" --archive=$BACKUP_DIR/mongodb_$DATE.gz
+
+# Keep only last 7 days
+find $BACKUP_DIR -name "mongodb_*.gz" -mtime +7 -delete
+
+echo "Backup completed: mongodb_$DATE.gz"
+```
+
+**Add to crontab:**
+
+```bash
+# Edit crontab
+sudo crontab -e
+
+# Add daily backup at 2 AM
+0 2 * * * /usr/local/bin/backup-kanbox.sh >> /var/log/kanbox-backup.log 2>&1
+```
+
+#### Scaling Considerations
+
+**Horizontal Scaling:**
+
+- Use Docker Swarm or Kubernetes for multiple app instances
+- Place Nginx load balancer in front of app instances
+- Share MongoDB instance across all app instances
+
+**Vertical Scaling:**
+
+- Increase VPS resources (CPU, RAM)
+- Adjust Docker container resource limits in docker-compose.prod.yml
+
+**Database Scaling:**
+
+- For high traffic, migrate to MongoDB Atlas
+- Use connection pooling in Mongoose configuration
+- Implement read replicas for better performance
+
 ---
 
 ## Post-Deployment Configuration

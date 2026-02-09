@@ -1,0 +1,15 @@
+{
+  "name": "kanbox",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm run build --prefix frontend",
+    "build:serve": "npm run build:serve --prefix frontend",
+    "docker:dev": "docker compose -f backend/docker-compose.yml up -d",
+    "docker:dev:down": "docker compose -f backend/docker-compose.yml down",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up --build -d",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
+  }
+}

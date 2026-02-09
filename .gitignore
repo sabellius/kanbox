@@ -39,8 +39,6 @@ vite.config.ts.timestamp-*
 *.temp
 .cache/
 
-# Docker
-.dockerignore
 memory-bank/
 
 tmp/

@@ -7,13 +7,5 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    echo 'Checking out source code'
-                    checkout scm
-                }
-            }
-        }
     }
 }

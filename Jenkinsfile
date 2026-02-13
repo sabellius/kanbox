@@ -11,9 +11,9 @@ pipeline {
         sh '''
           podman run --rm \
             -v "$PWD:/app:Z" \
-            -w /app \
+            -w /app/backend \
             node:20-alpine \
-            npm ci
+            npm install
         '''
       }
     }
@@ -23,9 +23,9 @@ pipeline {
         sh '''
           podman run --rm \
             -v "$PWD:/app:Z" \
-            -w /app \
+            -w /app/backend \
             node:20-alpine \
-            npm test
+            npm run test:run
         '''
       }
     }

@@ -1,27 +1,33 @@
 pipeline {
-    agent {
-        dockerContainer {
-            image 'node:24-alpine'
-        }
+  agent { label 'podman' }
+
+  options {
+    timestamps()
+  }
+
+  stages {
+    stage('Install deps') {
+      steps {
+        sh '''
+          podman run --rm \
+            -v "$PWD:/app:Z" \
+            -w /app \
+            node:20-alpine \
+            npm ci
+        '''
+      }
     }
 
-    options {
-        // Add timestamps to console output
-        timestamps()
+    stage('Test') {
+      steps {
+        sh '''
+          podman run --rm \
+            -v "$PWD:/app:Z" \
+            -w /app \
+            node:20-alpine \
+            npm test
+        '''
+      }
     }
-
-    stages {
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                    echo 'Installing backend dependencies...'
-                    cd backend && npm ci
-
-                    echo 'Installing frontend dependencies...'
-                    cd frontend && npm ci --legacy-peer-deps
-                '''
-            }
-        }
-    }
+  }
 }
-

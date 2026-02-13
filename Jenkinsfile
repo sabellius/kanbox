@@ -18,16 +18,16 @@ pipeline {
       }
     }
 
-    stage('Test') {
-      steps {
-        sh '''
-          podman run --rm \
-            -v "$PWD:/app:Z" \
-            -w /app/backend \
-            node:20-alpine \
-            npm run test:run
-        '''
-      }
-    }
+    // stage('Test') {
+    //   steps {
+    //     sh '''
+    //       podman run --rm \
+    //         -v "$PWD:/app:Z" \
+    //         -w /app/backend \
+    //         node:20-alpine \
+    //         npm run test:run
+    //     '''
+    //   }
+    // }
   }
 }

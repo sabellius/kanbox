@@ -1,5 +1,4 @@
 import * as boardService from "../services/board-service.js";
-import createError from "http-errors";
 import { throwNotFound } from "../utils/error-utils.js";
 import { sanitizeHTML, sanitizePlainText } from "../utils/sanitize.js";
 

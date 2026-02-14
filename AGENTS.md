@@ -1174,6 +1174,149 @@ nvm use default
 - No need to manually specify Node.js version in commands
 - Works with other version managers (mise, asdf, etc.)
 
+---
+
+## CI/CD Infrastructure
+
+### Jenkins Pipeline Architecture
+
+**Infrastructure Components:**
+
+- **Jenkins Master:** Running on Fedora Atomic Cosmic desktop via Podman
+- **Jenkins Agent:** Remote bare-metal server connected via SSH
+- **Container Runtime:** Podman accessed via TCP (not socket mounting)
+
+### Podman TCP Configuration
+
+Due to Fedora Atomic Cosmic desktop environment constraints, Podman is accessed via TCP API rather than traditional socket mounting. The DOCKER_HOST environment variable is configured in the Jenkins docker-compose file:
+
+```yaml
+# Jenkins docker-compose.yml
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    environment:
+      - DOCKER_HOST=tcp://host.docker.internal:8888
+    # ...
+```
+
+**On the Jenkins Agent (bare metal):**
+
+```bash
+# Enable Podman TCP API
+podman system service --time=0 tcp://0.0.0.0:8888
+
+# Or via systemd user socket activation
+systemctl --user enable --now podman.socket
+```
+
+### Pipeline Stages
+
+The production pipeline implements the following stages:
+
+1. **Checkout** - Source code retrieval with Git commit SHA extraction
+2. **Quality Gates** (Parallel execution):
+   - **Lint Backend** - ESLint analysis on backend code
+   - **Lint Frontend** - ESLint analysis on frontend code
+   - **Test Backend** - Vitest unit tests with mongodb-memory-server
+3. **Build Image** - Multi-stage Podman build using project Dockerfile
+4. **Publish Image** - Docker Hub push (main branch only)
+
+### Key Configuration
+
+| Setting         | Value       | Notes                                    |
+| --------------- | ----------- | ---------------------------------------- |
+| Agent Label     | `podman`    | Jenkins agent with Podman runtime        |
+| Node Version    | `22-alpine` | Container image for build stages         |
+| SELinux Labels  | `:Z` suffix | Required for Fedora Atomic volume mounts |
+| Timeout         | 30 minutes  | Global pipeline timeout                  |
+| Build Retention | 20 builds   | Log rotation policy                      |
+
+### Jenkins Credentials Required
+
+| Credential ID            | Type              | Purpose                         |
+| ------------------------ | ----------------- | ------------------------------- |
+| `docker-hub-credentials` | Username/Password | Docker Hub authentication       |
+| `docker-hub-username`    | Secret Text       | Docker Hub username for tagging |
+
+### Pipeline Code Patterns
+
+**Podman Run Pattern:**
+
+```groovy
+sh '''
+    podman run --rm \
+        --name ${PROJECT_NAME}-stage-${BUILD_NUMBER} \
+        -v "$PWD:/app:Z" \
+        -w /app/backend \
+        node:${NODE_VERSION} \
+        sh -c "npm ci && npm run <command>"
+'''
+```
+
+**Key Flags:**
+
+- `--rm` - Automatically remove container on exit
+- `-v "$PWD:/app:Z"` - Mount workspace with SELinux relabeling
+- `-w /app/backend` - Set working directory
+
+### Parallel Execution Strategy
+
+Quality gates run in parallel for faster feedback:
+
+```groovy
+stage('Quality Gates') {
+    parallel {
+        stage('Lint Backend') { /* ... */ }
+        stage('Lint Frontend') { /* ... */ }
+        stage('Test Backend') { /* ... */ }
+    }
+}
+```
+
+### Branch Protection
+
+Publishing is restricted to main branch:
+
+```groovy
+stage('Publish Image') {
+    when {
+        anyOf {
+            branch 'main'
+            branch 'master'
+        }
+    }
+    // ...
+}
+```
+
+### Security Best Practices
+
+- ✅ Credentials stored in Jenkins Credentials Manager
+- ✅ Password-stdin login (no command-line password exposure)
+- ✅ Logout after push operations
+- ✅ Ephemeral containers with `--rm` flag
+- ✅ No socket mounting (TCP API configured in docker-compose)
+- ✅ DOCKER_HOST set at container level, not in pipeline
+
+### Missing Enterprise Capabilities
+
+The current pipeline can be enhanced with:
+
+| Capability          | Priority | Recommended Tool |
+| ------------------- | -------- | ---------------- |
+| SBOM Generation     | High     | Syft             |
+| Container Scanning  | High     | Trivy            |
+| SAST                | High     | Semgrep          |
+| Semantic Versioning | Medium   | semantic-release |
+| Image Signing       | Medium   | Cosign           |
+| Notifications       | Medium   | Slack/Email      |
+
+**See Also:**
+
+- [`Jenkinsfile`](../Jenkinsfile) - Complete pipeline definition
+- [`plans/jenkins-pipeline-architecture.md`](../plans/jenkins-pipeline-architecture.md) - Detailed architecture and ADRs
+
 ### Configuration System
 
 The backend uses a modular configuration system with domain-specific config files:
@@ -1596,5 +1739,5 @@ await Card.findByIdAndUpdate(cardId, { position: newPosition });
 
 ---
 
-**Last Updated:** 2026-02-04
+**Last Updated:** 2026-02-14
 **Maintainer:** Saveliy Shiryaev

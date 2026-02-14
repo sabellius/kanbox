@@ -6,8 +6,6 @@ import {
   updateCard,
   deleteCard,
   moveCard,
-  getCardsByLabel,
-  getCardsByAssignedUser,
   updateLabels,
   addComment,
   updateComment,

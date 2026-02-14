@@ -24,7 +24,7 @@ pipeline {
                                 -v "$PWD:/app:Z" \
                                 -w /app/backend \
                                 node:${NODE_VERSION} \
-                                sh -c "npm ci && npm run lint"
+                                sh -c "npm install --legacy-peer-deps && npm run lint"
                         '''
                     }
                 }
@@ -37,7 +37,7 @@ pipeline {
                                 -v "$PWD:/app:Z" \
                                 -w /app/frontend \
                                 node:${NODE_VERSION} \
-                                sh -c "npm ci --legacy-peer-deps && npm run lint"
+                                sh -c "npm install --legacy-peer-deps && npm run lint"
                         '''
                     }
                 }

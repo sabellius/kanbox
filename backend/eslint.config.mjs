@@ -1,37 +1,44 @@
-import { defineConfig } from "eslint/config";
-import globals from "globals";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
+import globals from "globals";
+import vitest from "@vitest/eslint-plugin";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-});
+export default [
+  // Base configuration for all JavaScript files
+  js.configs.recommended,
 
-export default defineConfig([{
-    extends: compat.extends("eslint:recommended"),
-
+  // Source files configuration
+  {
+    files: ["src/**/*.js"],
     languageOptions: {
-        globals: {
-            ...globals.node,
-            ...vitest.environments.globals.globals,
-        },
-
-        ecmaVersion: "latest",
-        sourceType: "module",
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
     },
-
     rules: {
-        "no-unused-vars": ["warn", {
-            argsIgnorePattern: "^_",
-        }],
-
-        "no-console": "off",
-        "no-undef": "error",
+      "no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+        },
+      ],
+      "no-console": "off",
+      "no-undef": "error",
     },
-}]);
+  },
+
+  // Test files configuration with Vitest
+  {
+    files: ["tests/**/*.js"],
+    ...vitest.configs.recommended,
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+        ...vitest.environments.env.globals,
+      },
+    },
+  },
+];

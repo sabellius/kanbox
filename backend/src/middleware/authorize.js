@@ -51,13 +51,13 @@ export function canModifyCard() {
 }
 
 export function canCreateBoard() {
-  return authorize(async (req, userId) => {
+  return authorize(async (_req, _userId) => {
     return true;
   });
 }
 
 export function canCreateWorkspace() {
-  return authorize(async (req, userId) => {
+  return authorize(async (_req, _userId) => {
     return true;
   });
 }

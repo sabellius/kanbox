@@ -14,12 +14,28 @@ pipeline {
     }
 
     stages {
+        stage('Debug') {
+            steps {
+                sh '''
+                    echo "=== DEBUG INFO ==="
+                    echo "PWD: $PWD"
+                    echo "HOME: $HOME"
+                    echo "Current user: $(id)"
+                    ls -la
+                    ls -la backend/ || echo "backend/ not found"
+                    ls -la frontend/ || echo "frontend/ not found"
+                    echo "=== END DEBUG ==="
+                '''
+            }
+        }
+
         stage('Lint') {
             parallel {
                 stage('Backend') {
                     steps {
                         sh '''
                             podman run --rm \
+                                --user $(id -u):$(id -g) \
                                 --name ${PROJECT_NAME}-backend-lint-${BUILD_NUMBER} \
                                 -v "$PWD:/app:Z" \
                                 -w /app/backend \
@@ -33,6 +49,7 @@ pipeline {
                     steps {
                         sh '''
                             podman run --rm \
+                                --user $(id -u):$(id -g) \
                                 --name ${PROJECT_NAME}-frontend-lint-${BUILD_NUMBER} \
                                 -v "$PWD:/app:Z" \
                                 -w /app/frontend \

@@ -14,20 +14,20 @@ pipeline {
     }
 
     stages {
-        stage('Debug') {
-            steps {
-                sh '''
-                    echo "=== DEBUG INFO ==="
-                    echo "PWD: $PWD"
-                    echo "HOME: $HOME"
-                    echo "Current user: $(id)"
-                    ls -la
-                    ls -la backend/ || echo "backend/ not found"
-                    ls -la frontend/ || echo "frontend/ not found"
-                    echo "=== END DEBUG ==="
-                '''
-            }
-        }
+        // stage('Debug') {
+        //     steps {
+        //         sh '''
+        //             echo "=== DEBUG INFO ==="
+        //             echo "PWD: $PWD"
+        //             echo "HOME: $HOME"
+        //             echo "Current user: $(id)"
+        //             ls -la
+        //             ls -la backend/ || echo "backend/ not found"
+        //             ls -la frontend/ || echo "frontend/ not found"
+        //             echo "=== END DEBUG ==="
+        //         '''
+        //     }
+        // }
 
         stage('Lint') {
             parallel {
@@ -39,7 +39,7 @@ pipeline {
                                 -v "$PWD:/app:z" \
                                 -w /app/backend \
                                 node:${NODE_VERSION} \
-                                sh -c "npm install --legacy-peer-deps && npm run lint"
+                                sh -c "npm install --legacy-peer-deps && npm run lint:ci"
                         '''
                     }
                 }

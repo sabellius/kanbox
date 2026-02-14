@@ -26,7 +26,7 @@
 ### Backend (JavaScript/ESM)
 
 - Use ESM syntax (import/export) - project uses `"type": "module"` in package.json
-- Follow ESLint configuration in `backend/.eslintrc.json`
+- Follow ESLint configuration in `backend/eslint.config.mjs` (Flat Config, ESLint 10+)
 - Use async/await for asynchronous operations
 - Use 2 spaces for indentation (Prettier configuration)
 - No TypeScript - pure JavaScript with JSDoc comments for documentation
@@ -101,6 +101,73 @@ export const Card = ({ card, onDrag }) => {
 - Constants: SCREAMING_CASE (e.g., `API_BASE_URL`, `MAX_RETRIES`)
 - Database collections: snake_case (e.g., `users`, `boards`, `cards`)
 - Mongoose models: PascalCase (e.g., `User`, `Board`, `Card`)
+
+### ESLint Configuration (Flat Config)
+
+The project uses ESLint 10+ with the modern Flat Config format (`eslint.config.mjs`). This configuration was migrated from the legacy `.eslintrc.json` format on 2026-02-14.
+
+**Backend Configuration** (`backend/eslint.config.mjs`):
+
+```javascript
+import js from "@eslint/js";
+import globals from "globals";
+import vitest from "@vitest/eslint-plugin";
+
+export default [
+  // Base recommended rules for all files
+  js.configs.recommended,
+
+  // Source files configuration
+  {
+    files: ["src/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: { ...globals.node },
+    },
+    rules: {
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "no-console": "off",
+      "no-undef": "error",
+    },
+  },
+
+  // Test files with Vitest plugin
+  {
+    files: ["tests/**/*.js"],
+    ...vitest.configs.recommended, // Spreads plugin + recommended rules
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...vitest.environments.env.globals, // describe, it, expect, etc.
+      },
+    },
+  },
+];
+```
+
+**Key Points:**
+
+- Uses native Flat Config format (no `FlatCompat` wrapper)
+- `@vitest/eslint-plugin` provides Vitest-specific rules and globals
+- `vitest.configs.recommended` spreads both the plugin registration and recommended rules
+- `vitest.environments.env.globals` provides test globals (`describe`, `it`, `expect`, etc.)
+- Separate configurations for source files (`src/`) and test files (`tests/`)
+
+**Required Dependencies:**
+
+```json
+{
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/eslint-plugin": "^1.6.7",
+    "eslint": "^10.0.0",
+    "globals": "^17.3.0"
+  }
+}
+```
+
+**Note:** The `@eslint/eslintrc` package and `FlatCompat` are no longer needed after migrating to native Flat Config.
 
 ---
 

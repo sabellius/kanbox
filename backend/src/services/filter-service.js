@@ -31,7 +31,7 @@ export function buildCardFilterQuery(filterBy = {}) {
       if (typeof memberId === "string") {
         try {
           return new mongoose.Types.ObjectId(memberId);
-        } catch (e) {
+        } catch {
           console.warn("Invalid ObjectId format:", memberId);
           return memberId;
         }

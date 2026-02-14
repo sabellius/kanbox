@@ -35,9 +35,8 @@ pipeline {
                     steps {
                         sh '''
                             podman run --rm \
-                                --user $(id -u):$(id -g) \
                                 --name ${PROJECT_NAME}-backend-lint-${BUILD_NUMBER} \
-                                -v "$PWD:/app:Z" \
+                                -v "$PWD:/app:z" \
                                 -w /app/backend \
                                 node:${NODE_VERSION} \
                                 sh -c "npm install --legacy-peer-deps && npm run lint"
@@ -49,9 +48,8 @@ pipeline {
                     steps {
                         sh '''
                             podman run --rm \
-                                --user $(id -u):$(id -g) \
                                 --name ${PROJECT_NAME}-frontend-lint-${BUILD_NUMBER} \
-                                -v "$PWD:/app:Z" \
+                                -v "$PWD:/app:z" \
                                 -w /app/frontend \
                                 node:${NODE_VERSION} \
                                 sh -c "npm install --legacy-peer-deps && npm run lint"

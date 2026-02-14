@@ -24,7 +24,7 @@ pipeline {
                                 -v "$PWD:/app:Z" \
                                 -w /app/backend \
                                 node:${NODE_VERSION} \
-                                sh -c "npm ci --omit=dev && npm run lint"
+                                sh -c "npm ci && npm run lint"
                         '''
                     }
                 }

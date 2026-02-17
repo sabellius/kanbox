@@ -164,9 +164,6 @@ function Projects() {
 function SplitPane(props) {
   const [width, setWidth] = useState(30);
 
-  if (false && width === 60) {
-    throw new Error("Projects cannot load");
-  }
   return (
     <div
       className="split-pane"

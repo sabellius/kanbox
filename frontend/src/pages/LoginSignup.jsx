@@ -30,13 +30,12 @@ export function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    async function loadUsers() {
+      const users = await userService.getUsers();
+      setUsers(users);
+    }
     loadUsers();
   }, []);
-
-  async function loadUsers() {
-    const users = await userService.getUsers();
-    setUsers(users);
-  }
 
   async function onLogin(ev = null) {
     if (ev) ev.preventDefault();
@@ -80,8 +79,6 @@ export function Signup() {
   }
 
   function handleChange(ev) {
-    const type = ev.target.type;
-
     const field = ev.target.name;
     const value = ev.target.value;
     setCredentials({ ...credentials, [field]: value });

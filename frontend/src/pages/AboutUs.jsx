@@ -133,7 +133,7 @@ function Contacts() {
 
 function Projects() {
   const [projects, setProjects] = useState(["Puki Proj", "Muki Proj"]);
-  const projList = projects.map((proj, idx) => (
+  const projList = projects.map(proj => (
     <article
       className="proj-preview"
       key={proj}

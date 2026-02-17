@@ -24,8 +24,10 @@ export function userReducer(state = initialState, action) {
     case SET_WATCHED_USER:
       return { ...state, watchedUser: action.payload };
     case DELETE_USER:
-      const users = state.users.filter(user => user._id !== action.payload);
-      return { ...state, users };
+      return {
+        ...state,
+        users: state.users.filter(user => user._id !== action.payload),
+      };
     case SET_LOADING:
       return { ...state, isLoading: action.payload };
     case SET_ERROR:

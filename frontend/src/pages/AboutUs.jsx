@@ -132,14 +132,14 @@ function Contacts() {
 }
 
 function Projects() {
-  const [projs, setProjs] = useState(["Puki Proj", "Muki Proj"]);
-  const projList = projs.map((proj, idx) => (
+  const [projects, setProjects] = useState(["Puki Proj", "Muki Proj"]);
+  const projList = projects.map((proj, idx) => (
     <article
       className="proj-preview"
       key={proj}
       onClick={ev => {
         ev.stopPropagation();
-        setProjs(projs.filter(p => p !== proj));
+        setProjects(projects.filter(p => p !== proj));
       }}
     >
       {proj}
@@ -152,7 +152,7 @@ function Projects() {
       <button
         onClick={ev => {
           ev.stopPropagation();
-          setProjs([...projs, "Babu Proj" + (Date.now() % 100)]);
+          setProjects([...projects, "Babu Proj" + (Date.now() % 100)]);
         }}
       >
         Add

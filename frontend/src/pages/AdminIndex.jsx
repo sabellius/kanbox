@@ -13,7 +13,7 @@ export function AdminIndex() {
   useEffect(() => {
     if (!user.isAdmin) navigate("/");
     loadUsers();
-  }, []);
+  }, [user, navigate]);
 
   return (
     <section className="admin">

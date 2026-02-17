@@ -30,7 +30,7 @@ export function useCardFilters() {
   );
 
   const removeFilter = useCallback(
-    (type, value) => {
+    type => {
       if (type === "title") {
         dispatch(setFilters({ title: "" }));
       }

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 export function AboutUs() {
-  const [count, setCount] = useState(100);
+  const count = 100;
 
   function onTellMeMore() {
     console.log("Telling you more");

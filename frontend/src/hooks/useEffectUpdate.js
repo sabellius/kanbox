@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export const useEffectUpdate = (callBack, dependencies) => {
+export const useEffectUpdate = (callback, dependencies) => {
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -8,6 +8,7 @@ export const useEffectUpdate = (callBack, dependencies) => {
       isFirstRender.current = false;
       return;
     }
-    callBack();
-  }, dependencies);
+    callback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callback, ...dependencies]);
 };

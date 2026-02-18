@@ -30,7 +30,6 @@ export function LoginForm({ onSubmit }) {
   async function handleFormSubmit(data) {
     try {
       await onSubmit(data);
-      throw new Error("Login action not implemented yet");
     } catch (error) {
       setSubmitStatus({
         type: "error",
